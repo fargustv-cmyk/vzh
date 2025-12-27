@@ -2,13 +2,14 @@
 
 import { useState, UIEvent } from "react";
 import Image from "next/image";
+import type { ReactNode } from "react";
 
 type Slide = {
   title: string;
   bg: string;
   textColor: string;
   logo: string;
-  content: JSX.Element;
+  content: ReactNode;
 };
 
 type Card = {
@@ -19,6 +20,7 @@ type Card = {
 export default function Home() {
   const [activeCard, setActiveCard] = useState<Card | null>(null);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+
 
   const cards: Card[] = [
     {
