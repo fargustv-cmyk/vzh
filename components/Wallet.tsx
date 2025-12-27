@@ -5,19 +5,30 @@ import data from "../app/data/data.json";
 import Card from "./Card";
 import StackCard from "./StackCard";
 
-export default function Wallet() {
-  const order = data.walletOrder;
-  const [openStack, setOpenStack] = useState<string | null>(null);
+// Типы ключей, автоматически выводимые из JSON
+type ProjectId = keyof typeof data.projects;
+type StackId = keyof typeof data.stacks;
+type StackItemId = keyof typeof data.stackItems;
 
-  const toggleStack = (id: string) => {
-    setOpenStack(openStack === id ? null : id);
+// walletOrder содержит и проекты, и стопки
+type WalletId = ProjectId | StackId;
+
+export default function Wallet() {
+  const order = data.walletOrder as WalletId[];
+  const [openStack, setOpenStack] = useState<StackId | null>(null);
+
+  const toggleStack = (id: WalletId) => {
+    // Открывать можно только стопки
+    if (id in data.stacks) {
+      setOpenStack(openStack === id ? null : (id as StackId));
+    }
   };
 
   return (
     <div className="space-y-[-120px] pt-10">
       {order.map((id, index) => {
-        const project = data.projects[id];
-        const stack = data.stacks[id];
+        const project = data.projects[id as ProjectId];
+        const stack = data.stacks[id as StackId];
 
         const depth = order.length - index;
 
@@ -34,10 +45,10 @@ export default function Wallet() {
             className={`relative transition-all duration-300 ${shiftUp}`}
             style={{
               zIndex: depth,
-              opacity: 0.9 + index * 0.02
+              opacity: 0.9 + index * 0.02,
             }}
           >
-            {/* Проект */}
+            {/* Обычный проект */}
             {project && (
               <Card
                 title={project.title}
@@ -48,7 +59,10 @@ export default function Wallet() {
 
             {/* Стопка */}
             {stack && (
-              <div onClick={() => toggleStack(id)} className="cursor-pointer">
+              <div
+                onClick={() => toggleStack(id)}
+                className="cursor-pointer select-none"
+              >
                 <StackCard
                   title={stack.title}
                   count={stack.count}
@@ -59,7 +73,8 @@ export default function Wallet() {
                 {openStack === id && (
                   <div className="mt-4 space-y-4 animate-fadeIn">
                     {stack.items.map((itemId) => {
-                      const item = data.stackItems[itemId];
+                      const item = data.stackItems[itemId as StackItemId];
+
                       return (
                         <Card
                           key={itemId}
