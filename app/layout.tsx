@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Poppins, Inter, Montserrat } from "next/font/google"
 import localFont from "next/font/local";
 import "./globals.css";
 
+// Google fonts
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -13,6 +14,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Local font
 const forum = localFont({
   src: "../public/fonts/Forum-Regular.ttf",
   weight: "400",
@@ -39,10 +41,31 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "Yasha Vozhakin - Portfolio",
-  description: "Premium portfolio by Vozhakin Group",
+  title: "vozhakin.group",
+  description: "Yasha Vozhakin — Founder of Vozhakin Group",
+  icons: {
+    icon: "/favicon.ico",
+  },
+  openGraph: {
+    title: "vozhakin.group",
+    description: "Yasha Vozhakin — Founder of Vozhakin Group",
+    url: "https://vozhakin.group",
+    siteName: "vozhakin.group",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
 };
 
+// -----------------------------
+//   ROOT LAYOUT
+// -----------------------------
 export default function RootLayout({
   children,
 }: Readonly<{
