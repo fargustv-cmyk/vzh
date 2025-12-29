@@ -162,13 +162,13 @@ export default function Home() {
       title: "PlanSync",
       bg: "#FEFFFE",
       textColor: "black",
-      logo: "/plan.png",
+      logo: "/PLAN.png",
       slides: [
         {
           title: "PlanSync",
           bg: "#FEFFFE",
           textColor: "black",
-          logo: "/plan.png",
+          logo: "/PLAN.png",
           description: "Экосистема для планирования, которая соединяет магию бумажного дневника с мощью цифрового приложения.\n\nПроект создан для тех, кто ценит тактильность и фокус рукописных записей, но не хочет терять преимущества цифровой синхронизации и гибкой организации.\n\nВаши планы — в идеальном ритме.",
           tagline: "Ваши планы — в идеальном ритме",
           link: "https://plansync.ru",
