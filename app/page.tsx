@@ -452,7 +452,7 @@ export default function Home() {
             {/* BRAND */}
             <div className="text-sm font-inter text-slate-400 flex items-center gap-2">
               <Image
-                src="/vzhnew.png"
+                src="/vzh.png"
                 alt="Vozhakin Group"
                 width={16}
                 height={16}
