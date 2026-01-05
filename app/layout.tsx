@@ -42,13 +42,13 @@ const montserrat = Montserrat({
 
 export const metadata: Metadata = {
   title: "vozhakin.group",
-  description: "Yasha Vozhakin — Founder of Vozhakin Group",
+  description: "Yasha Vozhakin — Founder by Vozhakin Group",
   icons: {
     icon: "/favicon.ico",
   },
   openGraph: {
     title: "vozhakin.group",
-    description: "Yasha Vozhakin — Founder of Vozhakin Group",
+    description: "Yasha Vozhakin — Founder by Vozhakin Group",
     url: "https://vozhakin.group",
     siteName: "vozhakin.group",
     images: [
