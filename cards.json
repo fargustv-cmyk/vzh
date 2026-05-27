@@ -79,6 +79,39 @@
       "url": "",
       "accent": "#22c55e",
       "hidden": true
+    },
+    {
+      "id": "p_87fo6th",
+      "name": "Converter++",
+      "type": "Telegram mini app",
+      "variant": "",
+      "group": "",
+      "description": "Для тех, кто платит через цепочку валют",
+      "logo": "blob:https://web.telegram.org/5ba419ba-52b1-4d4f-b0c8-4a2b491469be",
+      "url": "@personal_converter_bot",
+      "accent": "#b48a5b",
+      "background": "linear-gradient(165deg, #0365fe 0%, #7a3bee 100%)",
+      "sections": [
+        {
+          "title": "О проекте",
+          "body": "Многоступенчатый конвертер валют"
+        },
+        {
+          "title": "Идея",
+          "body": "Строишь цепочку обмена (USDT → KZT → RUB) — на каждой ступени можно поставить свой курс и комиссию обменника, и видишь сколько реально теряешь"
+        },
+        {
+          "title": "Монетизация",
+          "body": "Pro за 100 Telegram Stars — разовая покупка, навсегда. Открывает кастомные курсы и комиссии на ступенях + сохранение цепочек в «Мои цепочки»"
+        }
+      ],
+      "links": [],
+      "directions": [],
+      "cta": {
+        "label": "Перейти в приложение",
+        "url": ""
+      },
+      "hidden": false
     }
   ],
   "contacts": [
