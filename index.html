@@ -951,11 +951,28 @@
     /* === Пасхалка: cosmic mode ===
        Тап по «Vozhakin Group» в футере прячет весь контент на 30 сек.
        Виден только звёздный фон и периодические падающие звёзды. */
-    body.cosmic-mode .wallet {
+    /* Базовый transition: opacity + transform на 800ms iOS-spring. Применяется
+       и при входе в cosmic-mode (быстрое затухание), и при выходе. На выходе
+       к каждому элементу добавляется свой transition-delay через .cosmic-revealing —
+       элементы возникают волной сверху вниз. */
+    .profile, .stack, #contacts, .footer {
+      transition: opacity 800ms cubic-bezier(.32,.72,0,1),
+                  transform 800ms cubic-bezier(.32,.72,0,1);
+    }
+    body.cosmic-mode .profile,
+    body.cosmic-mode .stack,
+    body.cosmic-mode #contacts,
+    body.cosmic-mode .footer {
       opacity: 0;
       pointer-events: none;
-      transition: opacity 600ms cubic-bezier(.32,.72,0,1);
+      transform: translateY(8px) scale(0.985);
     }
+    /* Поэтапное появление при выходе — класс cosmic-revealing держится
+       пока идёт reveal-волна, потом снимается JS-таймером. */
+    body.cosmic-revealing .profile  { transition-delay: 0ms;   }
+    body.cosmic-revealing .stack    { transition-delay: 220ms; }
+    body.cosmic-revealing #contacts { transition-delay: 440ms; }
+    body.cosmic-revealing .footer   { transition-delay: 620ms; }
     .cosmic-hint {
       position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
       font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
@@ -2022,11 +2039,23 @@
       function exit() {
         if (!active) return;
         active = false;
+        // Сначала включаем revealing-класс — он задаёт transition-delay'ы
+        // для поэтапного появления, ПОТОМ снимаем cosmic-mode (тогда
+        // transitions с этими delays начнут отыгрывать в нужном порядке).
+        document.body.classList.add('cosmic-revealing');
+        // Принудительный reflow, чтобы браузер применил .cosmic-revealing
+        // до того как сменится opacity (иначе обе смены могут смерджиться).
+        void document.body.offsetHeight;
         document.body.classList.remove('cosmic-mode');
         clearInterval(meteorTimer);
         clearTimeout(exitTimer);
         meteorTimer = null;
         exitTimer = null;
+        // Снимаем revealing после полного завершения волны
+        // (max delay 620ms + transition 800ms + buffer 200ms)
+        setTimeout(() => {
+          document.body.classList.remove('cosmic-revealing');
+        }, 1700);
       }
 
       trigger.addEventListener('click', (e) => {
