@@ -1,0 +1,1762 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>vozhakin.group</title>
+  <meta name="description" content="Yasha Vozhakin — Founder by Vozhakin Group" />
+  <meta property="og:title" content="vozhakin.group" />
+  <meta property="og:description" content="Yasha Vozhakin — Founder by Vozhakin Group" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://vozhakin.group" />
+  <meta name="theme-color" content="#000000" />
+  <link rel="icon" type="image/png" href="https://vzh.vercel.app/vzh.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #000;
+      --bg-tint: #0a0a0c;
+      --text: #f5f5f7;
+      --text-muted: #98989d;
+      --text-subtle: rgba(255,255,255,0.40);
+      --glass-bg: rgba(255,255,255,0.06);
+      --glass-highlight: rgba(255,255,255,0.18);
+      --hairline: rgba(255,255,255,0.10);
+      --card-h: 280px;
+      /* legacy aliases */
+      --muted: var(--text-muted);
+      --pill: var(--glass-bg);
+      --pill-border: rgba(255,255,255,0.14);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; padding: 0;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Text', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100%;
+    }
+    body {
+      min-height: 100vh;
+      /* Дополнительные 28px сверху, чтобы профиль не «прилипал» к шапке
+         браузера. safe-area-inset-top на iPhone добавит сверху своё значение. */
+      padding: calc(env(safe-area-inset-top, 0px) + 56px) 16px env(safe-area-inset-bottom, 36px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--bg);
+      position: relative;
+    }
+
+    /* === Cosmic background === */
+    /* Fixed full-screen layer with a deep nebula wash + generated starfield.
+       Sits behind everything (z-index: -1) and doesn't scroll. */
+    .starfield {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse 70% 55% at 18% 22%, rgba(60,40,120,0.20) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 82% 78%, rgba(20,40,100,0.16) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(90,30,130,0.06) 0%, transparent 70%),
+        #000;
+    }
+    /* @property registers the drift offsets as <length>s so the browser can
+       smoothly interpolate between them. Without this, custom properties are
+       treated as discrete strings inside transform() — the result looks like
+       the stars teleport instead of drifting. */
+    @property --dx0 { syntax: '<length>'; inherits: false; initial-value: 0px; }
+    @property --dy0 { syntax: '<length>'; inherits: false; initial-value: 0px; }
+    @property --dx1 { syntax: '<length>'; inherits: false; initial-value: 0px; }
+    @property --dy1 { syntax: '<length>'; inherits: false; initial-value: 0px; }
+
+    .starfield .star {
+      position: absolute;
+      background: #fff;
+      border-radius: 50%;
+      pointer-events: none;
+      /* fill-mode both → during the delay the 0% keyframe applies, so the
+         star starts at its drift origin instead of snapping to it. */
+      animation: drift var(--drift-d, 40s) ease-in-out var(--drift-delay, 0s) infinite both;
+    }
+    .starfield .star.tw {
+      animation:
+        drift var(--drift-d, 40s) ease-in-out var(--drift-delay, 0s) infinite both,
+        twinkle var(--d, 4s) ease-in-out var(--delay, 0s) infinite both;
+    }
+    @keyframes drift {
+      0%, 100% { transform: translate3d(var(--dx0), var(--dy0), 0); }
+      50%      { transform: translate3d(var(--dx1), var(--dy1), 0); }
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: var(--max, 0.8); }
+      50%      { opacity: var(--min, 0.2); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .starfield .star { animation: none; }
+    }
+
+    .wallet {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    /* Wrapper around profile + actions. On mobile it's transparent for
+       layout (children flow into .wallet's flex column). On desktop it
+       becomes a real block + position anchor for the absolutely-placed
+       actions button. */
+    .left-col { display: contents; }
+    /* On mobile, ensure the natural order is preserved: profile, stack,
+       actions, footer — even though .left-col wraps profile+actions. */
+    .actions { order: 1; }
+    .footer  { order: 2; }
+
+    /* === Profile — glass plate that flips to "About me" === */
+    .profile {
+      width: 100%;
+      max-width: 420px;
+      padding: 12px 0 22px;
+    }
+    .profile-card {
+      position: relative;
+      width: 100%;
+      height: 160px;
+      border-radius: 22px;
+      cursor: pointer;
+      perspective: 1600px;
+      transition: height 560ms cubic-bezier(.32,.72,0,1);
+    }
+    .profile-card.is-flipped { height: 320px; }
+    .profile-card .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 700ms cubic-bezier(.32,.72,0,1);
+      border-radius: inherit;
+    }
+    .profile-card.is-flipped .card-inner { transform: rotateY(-180deg); }
+    .profile-card .face {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      color: var(--text);
+      overflow: hidden;
+      /* Максимум стекла: alpha 0.22 (звёзды видны напрямую), blur 80px и
+         saturate 210% — материал ощущается тоньше плёнки.
+         Прежние параметры (на случай если этот вариант слишком прозрачен):
+           background: rgba(20,20,24,0.32);
+           backdrop-filter: blur(60px) saturate(200%);
+           inset top highlight: rgba(255,255,255,0.30); */
+      background:
+        radial-gradient(140% 90% at 30% 0%, rgba(255,255,255,0.12) 0%, transparent 55%),
+        rgba(20,20,24,0.22);
+      -webkit-backdrop-filter: blur(80px) saturate(210%);
+      backdrop-filter: blur(80px) saturate(210%);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.34),
+        inset 0 0 0 0.5px rgba(255,255,255,0.14),
+        inset 0 -1px 0 rgba(0,0,0,0.10),
+        0 1px 2px rgba(0,0,0,0.16),
+        0 14px 30px rgba(0,0,0,0.38);
+    }
+    .profile-card .face.front {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 18px 22px;
+      gap: 12px;
+    }
+    .profile-card .face.front img.avatar {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow:
+        0 0 0 0.5px rgba(255,255,255,0.20),
+        0 0 0 3px rgba(255,255,255,0.04),
+        0 6px 16px rgba(0,0,0,0.45);
+    }
+    .profile-card .face.front .name-block { text-align: center; }
+    .profile-card .face.front h1 {
+      font-size: 17px;
+      font-weight: 500;
+      margin: 0 0 2px;
+      letter-spacing: -0.015em;
+    }
+    .profile-card .face.front p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 0;
+      font-weight: 400;
+      letter-spacing: -0.005em;
+    }
+    .profile-card .face.back {
+      transform: rotateY(-180deg);
+      display: flex;
+      flex-direction: column;
+      padding: 18px 20px 16px;
+    }
+    /* Manifesto inline on the FRONT — hidden on mobile, shown on desktop */
+    .profile-card .face.front .front-manifesto { display: none; }
+
+    /* === Desktop layout (≥ 960px): two columns =========================== */
+    @media (min-width: 960px) {
+      body {
+        padding: calc(env(safe-area-inset-top, 0px) + 88px) 32px env(safe-area-inset-bottom, 48px);
+      }
+      .wallet {
+        max-width: 1080px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 420px;
+        grid-template-areas:
+          "leftcol stack"
+          "footer  footer";
+        column-gap: 56px;
+        row-gap: 24px;
+        align-items: start;
+      }
+      /* .left-col becomes a real block on desktop — анкер для абсолютной
+         кнопки контакта. profile-card сидит в потоке, actions выходит из
+         потока и фиксируется по top:484, не реагируя на флипы. */
+      .left-col {
+        display: block;
+        grid-area: leftcol;
+        position: relative;
+        min-height: 460px;       /* high enough to cover profile-card in flipped state */
+      }
+      .profile  { max-width: none; padding: 0; margin: 0; }
+      .stack    { grid-area: stack;   margin: 0; order: 0; }
+      .footer   { grid-area: footer;  margin-top: 24px; order: 0; }
+      /* Actions фиксированно ниже максимальной высоты profile-card во
+         флипнутом состоянии (460px) + 24px gap. Никакие флипы не сдвигают. */
+      .actions {
+        position: absolute;
+        top: 484px;
+        left: 0;
+        margin: 0;
+        justify-content: flex-start;
+        order: 0;
+      }
+
+      /* Profile card grows on desktop and shows the manifesto inline. */
+      .profile-card { height: 360px; }
+      .profile-card.is-flipped { height: 460px; }
+      .profile-card .face.front {
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        text-align: left;
+        padding: 28px 32px;
+        gap: 14px;
+      }
+      .profile-card .face.front img.avatar { width: 84px; height: 84px; }
+      .profile-card .face.front .name-block { text-align: left; }
+      .profile-card .face.front .name-block h1 {
+        font-size: 24px;
+        letter-spacing: -0.02em;
+        margin: 0 0 4px;
+      }
+      .profile-card .face.front .name-block p {
+        font-size: 14px;
+      }
+      .profile-card .face.front .front-manifesto {
+        display: block;
+        font-size: 14px;
+        line-height: 1.55;
+        color: rgba(255,255,255,0.74);
+        margin: 8px 0 0;
+        letter-spacing: -0.005em;
+      }
+    }
+
+    /* Stack */
+    .stack {
+      position: relative;
+      width: 100%;
+      /* Height is set by JS based on TOP_H + (N-1) * PEEK_H so the layout
+         is identical no matter which card is active — no scrolling on tap. */
+      margin: 8px 0 24px;
+    }
+
+    /* === Card — Cupertino === */
+    /* iOS spring: cubic-bezier(.32,.72,0,1) — used everywhere for parity. */
+    .card {
+      position: absolute;
+      left: 0; right: 0;
+      height: var(--card-h);
+      border-radius: 22px;
+      overflow: visible;
+      cursor: pointer;
+      perspective: 1600px;
+      will-change: top, height;
+    }
+    /* Transitions only after first layout pass. */
+    .card.ready {
+      transition: top 520ms cubic-bezier(.32,.72,0,1),
+                  height 560ms cubic-bezier(.32,.72,0,1);
+    }
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 700ms cubic-bezier(.32,.72,0,1);
+      border-radius: inherit;
+    }
+    /* Mirror flip — card rotates in the opposite direction so it feels like
+       the right edge swings forward instead of the left. */
+    .card.is-flipped .card-inner { transform: rotateY(-180deg); }
+
+    .face {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      /* Hairline top highlight + subtle ambient + soft key shadow */
+      box-shadow:
+        inset 0 0.5px 0 rgba(255,255,255,0.24),
+        inset 0 0 0 0.5px rgba(255,255,255,0.04),
+        0 1px 2px rgba(0,0,0,0.20),
+        0 10px 22px rgba(0,0,0,0.30);
+      transition: box-shadow 520ms cubic-bezier(.32,.72,0,1);
+    }
+    /* Active = карта поднята из стопки лицом вверх (перед переворотом).
+       Тень чуть глубже, чем у peek, но мягче, чем у flipped — даёт визуально
+       понять, что карта «выбрана» и следующий тап её перевернёт. */
+    .card.is-active .face {
+      box-shadow:
+        inset 0 0.5px 0 rgba(255,255,255,0.26),
+        inset 0 0 0 0.5px rgba(255,255,255,0.05),
+        0 2px 4px rgba(0,0,0,0.24),
+        0 20px 44px rgba(0,0,0,0.42);
+    }
+    .card.is-flipped .face {
+      box-shadow:
+        inset 0 0.5px 0 rgba(255,255,255,0.28),
+        inset 0 0 0 0.5px rgba(255,255,255,0.05),
+        0 2px 4px rgba(0,0,0,0.30),
+        0 30px 64px rgba(0,0,0,0.55);
+    }
+    /* No square-bottom hack needed: the next card sits on top of each peek
+       card and naturally hides its rounded bottom corners. */
+
+    /* Glass-spotlight mode: card surface is translucent so the starfield and
+       nebula behind it blur through, with a radial accent-coloured glow in
+       the upper-right (like the iOS dashboard hero card). */
+    .card.is-glass .face .bg-layer {
+      -webkit-backdrop-filter: blur(34px) saturate(160%);
+      backdrop-filter: blur(34px) saturate(160%);
+    }
+    /* In glass mode the bottom scrim would muddy the radial glow, so hide it. */
+    .card.is-glass .face .overlay { opacity: 0; }
+    /* Soft specular still helps glass feel, but lighter so the accent glow stays the hero. */
+    .card.is-glass .face::after {
+      background:
+        radial-gradient(150% 80% at 50% -30%, rgba(255,255,255,0.10) 0%, transparent 55%);
+    }
+    .face .bg-layer {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: var(--card-bg, linear-gradient(165deg, #555, #222));
+      background-size: cover;
+      background-position: center;
+      z-index: 0;
+    }
+    /* Specular sheen — always on. Mimics polished glass catching overhead
+       light: a radial highlight near the top and a soft white wash on the
+       upper 22% of the card. */
+    .face::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background:
+        radial-gradient(150% 80% at 50% -30%, rgba(255,255,255,0.20) 0%, transparent 55%),
+        linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.00) 22%);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .face .overlay {
+      /* Vignette at bottom anchors the slogan on the last card; on peek cards
+         this area is hidden under the next card, on flipped cards it's
+         rotated out of view — so always-on is fine. */
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background:
+        linear-gradient(180deg,
+          rgba(0,0,0,0.00) 0%,
+          rgba(0,0,0,0.00) 55%,
+          rgba(0,0,0,0.35) 100%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .face .content {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 16px 18px 18px;
+    }
+    .back {
+      transform: rotateY(-180deg);
+      background:
+        radial-gradient(120% 80% at 30% 0%, rgba(255,255,255,0.05) 0%, transparent 55%),
+        linear-gradient(170deg, #1c1c1e 0%, #0a0a0c 100%);
+      padding: 18px 18px 16px;
+    }
+
+    /* Top row — same anchor in every state */
+    .top-row {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-height: 36px;
+    }
+    .logo-box {
+      width: 36px; height: 36px;
+      border-radius: 11px;
+      background: rgba(255,255,255,0.10);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+      /* Real glass chip: hard top highlight + hairline + bottom-edge shadow */
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.32),
+        inset 0 0 0 0.5px rgba(255,255,255,0.14),
+        inset 0 -1px 0 rgba(0,0,0,0.12);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      backdrop-filter: blur(28px) saturate(180%);
+    }
+    .logo-box img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      padding: 6px;
+    }
+    .logo-box .initial {
+      font-size: 15px; font-weight: 500; color: #fff;
+      letter-spacing: -0.01em;
+    }
+    .brand-name {
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: -0.005em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      min-width: 0;
+    }
+    /* Variant — small label after the brand name, e.g. "CineShift · для физлиц".
+       Lets sister cards in the stack share logo + colour but stay readable
+       at peek size. */
+    .variant {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      white-space: nowrap;
+      padding-left: 12px;
+      position: relative;
+      flex-shrink: 0;
+      max-width: 50%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .variant::before {
+      content: '·';
+      position: absolute;
+      left: 3px;
+      top: 50%;
+      transform: translateY(-55%);
+      color: rgba(255,255,255,0.35);
+      font-size: 14px;
+      line-height: 1;
+    }
+    /* Pair indicator — цифра в углу показывает сколько всего сестёр в группе.
+       Например «2» = эта карточка одна из двух связанных. */
+    .pair-indicator {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 8px;
+      margin-left: auto;
+      background: rgba(255,255,255,0.16);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: rgba(255,255,255,0.96);
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+      box-shadow:
+        inset 0 0.5px 0 rgba(255,255,255,0.24),
+        inset 0 0 0 0.5px rgba(255,255,255,0.08);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+    }
+
+    /* Bottom block: always visible on the front face. On peek cards the
+       next card covers it; on flipped cards the front is rotated away. */
+    .slogan-wrap {
+      margin-top: auto;
+    }
+    .type-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      margin: 0 0 5px;
+      color: rgba(255,255,255,0.68);
+    }
+    .slogan {
+      font-size: 23px;
+      font-weight: 500;
+      margin: 0;
+      line-height: 1.10;
+      letter-spacing: -0.022em;
+    }
+
+    /* === Back side === */
+    .back {
+      display: flex;
+      flex-direction: column;
+    }
+    .back .back-top {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 6px;
+      flex-shrink: 0;
+      gap: 12px;
+    }
+    .back .back-title { min-width: 0; flex: 1; }
+    .back .back-type {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.50);
+      margin: 0 0 3px;
+    }
+    .back h3 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 500;
+      letter-spacing: -0.015em;
+    }
+    /* Маленький значок-вариант после названия (e.g. «CineShift для физлиц»).
+       Сообщает, какая из сестёр сейчас открыта в карусели. */
+    .back .back-variant-badge {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 3px 9px 2px;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.72);
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      vertical-align: middle;
+      line-height: 1;
+      box-shadow: inset 0 0.5px 0 rgba(255,255,255,0.14);
+    }
+    .back .back-tagline {
+      font-size: 14px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.74);
+      margin: 0 0 14px;
+      letter-spacing: -0.005em;
+      line-height: 1.35;
+      flex-shrink: 0;
+    }
+    .back .close-btn {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: none;
+      color: rgba(255,255,255,0.94);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      line-height: 1;
+      font-family: inherit;
+      /* Glass circle: bright top highlight + hairline */
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.22),
+        inset 0 0 0 0.5px rgba(255,255,255,0.08);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      backdrop-filter: blur(28px) saturate(180%);
+      transition: background 160ms ease;
+    }
+    .back .close-btn:hover { background: rgba(255,255,255,0.14); }
+
+    .back .scroll {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 4px;
+      margin-right: -4px;
+      margin-bottom: 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+    /* Скроллбар спрятан полностью — карта подстраивается по высоте под
+       контент через JS-измерение. Если из-за subpixel rounding появится
+       микро-оверфлоу, тонкая вертикальная полоска не вылезет на back-сторону. */
+    .back .scroll { scrollbar-width: none; -ms-overflow-style: none; }
+    .back .scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+    .back .section { margin-bottom: 14px; }
+    .back .section:last-child { margin-bottom: 0; }
+    .back .section h4 {
+      font-size: 11px;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.50);
+      margin: 0 0 5px;
+      font-weight: 500;
+    }
+    .back .section p {
+      font-size: 14px;
+      line-height: 1.45;
+      margin: 0;
+      color: rgba(255,255,255,0.88);
+      font-weight: 400;
+    }
+
+    /* Variant carousel — несколько направлений одного проекта (e.g. CineShift
+       для физлиц / для юрлиц). На обороте карта показывает один вариант, dots
+       снизу + горизонтальный swipe переключают между вариантами. */
+    .back .variant-carousel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .back .variant-viewport {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+      min-height: 0;
+    }
+    .back .variant-track {
+      display: flex;
+      height: 100%;
+      transition: transform 480ms cubic-bezier(.32,.72,0,1);
+      touch-action: pan-y;
+    }
+    .back .variant-page {
+      flex: 0 0 100%;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      /* Никакого спец-padding'a — структура внутри (back-top, tagline,
+         scroll, pills, cta) полностью повторяет обычную back-сторону.
+         Каждая страница карусели — точная копия одиночной back-карточки. */
+      padding: 0;
+    }
+    .back .variant-label {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.50);
+      margin: 0 0 3px;
+    }
+    .back .variant-dots {
+      display: flex;
+      justify-content: center;
+      gap: 7px;
+      margin: 10px 0 4px;
+      flex-shrink: 0;
+    }
+    .back .variant-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      transition: background 240ms ease, transform 240ms ease;
+    }
+    .back .variant-dot.active {
+      background: rgba(255,255,255,0.90);
+      transform: scale(1.15);
+    }
+    .back .variant-dot:hover { background: rgba(255,255,255,0.50); }
+
+    /* Старые селекторы карусели-стрелок остаются для обратной совместимости
+       (на случай если cards.json со старой версией). Сейчас не используются. */
+    .back .variant-carousel { position: relative; overflow: visible; }
+
+    /* Card-nav — кнопки навигации по сёстрам, рендерятся ПОВЕРХ карты
+       (как прямые дети .card, не внутри .face). Так они не зажаты в
+       overflow: hidden и не участвуют в 3D-флипе. Сидят ВНУТРИ карточки
+       по бокам, с лёгким зазором от края. */
+    .card-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: rgba(20,20,24,0.55);
+      border: 0.5px solid rgba(255,255,255,0.14);
+      color: rgba(255,255,255,0.94);
+      cursor: pointer;
+      display: none;             /* по умолчанию скрыты, показываем когда карта flipped */
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      line-height: 1;
+      font-family: inherit;
+      padding: 0;
+      z-index: 200;              /* поверх всей карточной поверхности */
+      pointer-events: auto;
+      touch-action: manipulation;
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      backdrop-filter: blur(20px) saturate(160%);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.20),
+        inset 0 0 0 0.5px rgba(255,255,255,0.08),
+        0 3px 10px rgba(0,0,0,0.35);
+      transition: background 160ms ease, transform 160ms ease, opacity 160ms ease;
+    }
+    .card-nav:hover { background: rgba(40,40,46,0.72); }
+    .card-nav:active { transform: translateY(-50%) scale(0.92); }
+    .card-nav[aria-disabled="true"] {
+      opacity: 0.32;
+      cursor: default;
+      pointer-events: auto;
+    }
+    /* Только на десктопе показываем стрелки и выносим их за пределы
+       карточки в gap-зону между профилем и стопкой. На мобильных
+       пользователи листают свайпом или тапают по точкам внизу. */
+    @media (min-width: 960px) {
+      .card.is-flipped .card-nav { display: inline-flex; }
+      .card-nav.prev { left: -46px; }
+      .card-nav.next { right: -46px; }
+    }
+
+    /* Directions — sub-projects inside one project (e.g. TSOH: clothing + parfum).
+       Each is a tappable glass row between sections and pills. */
+    .back .directions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+    .back .direction {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--text);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      backdrop-filter: blur(28px) saturate(180%);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.10),
+        inset 0 0 0 0.5px rgba(255,255,255,0.08),
+        inset 0 -1px 0 rgba(0,0,0,0.08);
+      transition: background 160ms ease, transform 100ms ease;
+    }
+    .back .direction:hover { background: rgba(255,255,255,0.10); }
+    .back .direction:active { transform: scale(0.98); }
+    .back .direction .dir-body { flex: 1; min-width: 0; }
+    .back .direction .dir-title {
+      font-size: 14px; font-weight: 500;
+      letter-spacing: -0.01em;
+      color: rgba(255,255,255,0.94);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .back .direction .dir-desc {
+      font-size: 12px;
+      color: rgba(255,255,255,0.55);
+      margin-top: 2px;
+      letter-spacing: -0.005em;
+      line-height: 1.3;
+    }
+    .back .direction .dir-arrow {
+      color: rgba(255,255,255,0.45);
+      font-size: 18px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    /* Frosted-glass pills */
+    .back .pills {
+      display: flex; flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+    .back .pill {
+      display: inline-flex; align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      background: rgba(255,255,255,0.06);
+      border: none;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.94);
+      text-decoration: none;
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      backdrop-filter: blur(28px) saturate(180%);
+      /* Glass pill: top highlight, hairline, soft bottom shadow */
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.12),
+        inset 0 0 0 0.5px rgba(255,255,255,0.08),
+        inset 0 -1px 0 rgba(0,0,0,0.10);
+      transition: background 160ms ease;
+    }
+    .back .pill:hover { background: rgba(255,255,255,0.10); }
+    .back .pill svg { width: 13px; height: 13px; }
+
+    /* CTA */
+    .back .goto {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.98);
+      color: #0a0a0e;
+      border-radius: 13px;
+      padding: 13px 16px;
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      transition: transform 120ms ease, background 160ms ease;
+      flex-shrink: 0;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.10);
+    }
+    .back .goto:active { transform: scale(0.97); }
+    .back .goto.disabled {
+      background: rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.6);
+      pointer-events: none;
+    }
+
+    /* Actions / contacts */
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin: 0 0 28px;
+    }
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 12px 20px;
+      background: rgba(255,255,255,0.06);
+      border: none;
+      border-radius: 999px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: -0.005em;
+      /* Real frosted glass */
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      backdrop-filter: blur(28px) saturate(180%);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.18),
+        inset 0 0 0 0.5px rgba(255,255,255,0.10),
+        inset 0 -1px 0 rgba(0,0,0,0.10),
+        0 1px 2px rgba(0,0,0,0.25),
+        0 8px 18px rgba(0,0,0,0.30);
+      transition: background 180ms ease, transform 120ms ease;
+    }
+    .action-btn:hover { background: rgba(255,255,255,0.10); }
+    .action-btn:active { transform: scale(0.97); }
+    .action-btn svg { width: 18px; height: 18px; }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding-top: 4px;
+      position: relative;
+    }
+    /* Hairline separator above footer */
+    .footer::before {
+      content: '';
+      display: block;
+      width: 48px;
+      height: 0.5px;
+      background: var(--hairline);
+      margin-bottom: 16px;
+    }
+    .footer .brand-row {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.72);
+      letter-spacing: -0.005em;
+    }
+    .footer .brand-row img {
+      width: auto; height: 40px;
+      opacity: 0.92;
+    }
+    .footer > span:last-child {
+      font-size: 11px;
+      color: var(--text-subtle);
+      font-weight: 400;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="starfield" id="starfield" aria-hidden="true"></div>
+  <main class="wallet" role="main">
+    <div class="left-col">
+      <header class="profile" id="profile" aria-label="Профиль">
+        <p style="opacity:.5; font-size: 13px;">Загрузка…</p>
+      </header>
+      <nav class="actions" id="contacts" aria-label="Контакты"></nav>
+    </div>
+
+    <section class="stack" id="stack" aria-label="Проекты"></section>
+
+    <footer class="footer" id="footer"></footer>
+  </main>
+
+  <script>
+    const FALLBACK = {
+      profile: {
+        name: "Yasha Vozhakin",
+        title: "Founder & Creator",
+        type: "",
+        photo: "https://vzh.vercel.app/profile.jpg",
+        about: [
+          { title: "", body: "Ideas first. I design systems that feel — tactile, visual, emotional. From tech to retail. I build experiences where clarity meets imagination." },
+          { title: "Что делаю", body: "Шесть проектов под зонтом Vozhakin Group — от бренда одежды до планировщика для команд. Каждый — про опыт, не про категорию." },
+          { title: "Связаться", body: "Telegram — самый быстрый канал. Пишите, если у идеи есть искра." }
+        ]
+      },
+      projects: [
+        { id: "tsoh",         name: "TSOH",         type: "Бренд",        description: "Two Souls One Heart",        logo: "https://vzh.vercel.app/TSOH_LOGO.png", url: "", accent: "#b48a5b" },
+        {
+          id: "cineshift",
+          name: "CineShift",
+          type: "Производство",
+          variant: "для физлиц",
+          group: "cineshift",
+          description: "Креатив без границ",
+          logo: "https://vzh.vercel.app/CineShift.png",
+          url: "https://cineshift.ru",
+          accent: "#7a5cc9",
+          sections: [
+            { title: "О направлении", body: "Производство контента для частных клиентов — клипы, авторские проекты, нестандартные форматы. Снимаем то, что трогает." },
+            { title: "Идея",          body: "Сдвиг восприятия в каждом кадре. Камера как продолжение чувства, а не инструмент протокола." },
+            { title: "Стоимость",     body: "От минимального пакета до полного цикла. Гибкий ценник под идею и масштаб." },
+            { title: "Этапы",         body: "Бриф → препродакшн → съёмка → монтаж → цветокоррекция → передача мастера." }
+          ],
+          links: [
+            { label: "Сайт",      url: "https://cineshift.ru",         icon: "link"     },
+            { label: "Instagram", url: "https://instagram.com/cineshift", icon: "instagram" }
+          ],
+          cta: { label: "Узнать подробнее", url: "https://cineshift.ru" }
+        },
+        {
+          id: "cineshift-org",
+          name: "CineShift.org",
+          type: "Производство",
+          variant: "для юрлиц",
+          group: "cineshift",
+          description: "Корпоративный продакшн",
+          logo: "https://vzh.vercel.app/CineShift.png",
+          url: "https://cineshift.org",
+          accent: "#7a5cc9",
+          sections: [
+            { title: "О направлении", body: "Производство для брендов и компаний — рекламные ролики, имиджевые фильмы, корпоративные форматы." },
+            { title: "Идея",          body: "Превращаем брифы в контент, который реально работает на продажи и узнаваемость." },
+            { title: "Условия",       body: "Договор, отчётность, портфолио по запросу. Работаем как с small business, так и с крупными брендами." },
+            { title: "Команда",       body: "Режиссёры, операторы, монтажёры, цветокоры — собираем под задачу из проверенного пула." }
+          ],
+          links: [
+            { label: "Сайт",      url: "https://cineshift.org",        icon: "link"     },
+            { label: "Telegram",  url: "https://t.me/cineshift_org",   icon: "telegram" }
+          ],
+          cta: { label: "Связаться", url: "https://t.me/cineshift_org" }
+        },
+        { id: "prodproc",     name: "ProdProc",     type: "Сервис",       description: "Система. Документы. Результат", logo: "https://vzh.vercel.app/ProdProc.png", url: "", accent: "#3b82f6" },
+        { id: "kenostyle",    name: "KenoStyle",    type: "Одежда",       description: "Одежда для своих, от своих",   logo: "https://vzh.vercel.app/keno.png",     url: "", accent: "#e76f51" },
+        { id: "kenomedia",    name: "KenoMedia",    type: "Медиа",        description: "Магия кино в трансляции",       logo: "https://vzh.vercel.app/MEDIA.png",    url: "", accent: "#0ea5e9" },
+        { id: "plansync",     name: "PlanSync",     type: "Софт",         description: "Ваши планы — в идеальном ритме", logo: "https://vzh.vercel.app/PlanSync.png", url: "", accent: "#22c55e" }
+      ],
+      contacts: [
+        { id: "telegram", label: "Telegram", url: "https://t.me/Yasha_Vozhakin", icon: "telegram" }
+      ],
+      footer: { brand: "Vozhakin Group", logo: "https://vzh.vercel.app/vzh.png", year: 2025 }
+    };
+
+    /* Универсальные SVG иконки для UI-кнопок — крест и шевроны.
+       Центрируются идеально по сетке viewBox, не зависят от шрифта
+       (где Unicode-крестики и углы съезжают вверх/вниз по baseline). */
+    const ICON_CLOSE = '<svg viewBox="0 0 12 12" width="12" height="12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none" aria-hidden="true"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg>';
+    const ICON_CHEVRON_LEFT  = '<svg viewBox="0 0 12 12" width="11" height="11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" aria-hidden="true"><polyline points="7.5,2.5 3.5,6 7.5,9.5"/></svg>';
+    const ICON_CHEVRON_RIGHT = '<svg viewBox="0 0 12 12" width="11" height="11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none" aria-hidden="true"><polyline points="4.5,2.5 8.5,6 4.5,9.5"/></svg>';
+
+    const ICONS = {
+      telegram: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.6 14.4 9.4 18c.4 0 .6-.2.8-.4l1.9-1.8 3.9 2.8c.7.4 1.2.2 1.4-.6L20.9 5c.3-1.1-.4-1.5-1.1-1.3L3.4 10.1c-1.1.4-1.1 1-.2 1.3l4.2 1.3 9.8-6.2c.5-.3.9-.1.5.2"/></svg>',
+      email:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
+      whatsapp: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 3.5A11 11 0 0 0 3.7 17.3L2 22l4.8-1.6A11 11 0 1 0 20.5 3.5Zm-3.4 13.9c-.3.7-1.4 1.4-2 1.4-.6 0-3-.4-6-1.6-2.9-1.2-4.9-4.2-5-4.4-.1-.2-1.2-1.5-1.2-3 0-1.5.7-2.2 1-2.5.3-.3.6-.4.8-.4h.6c.2 0 .5-.1.7.5.2.6.9 2.2.9 2.3.1.2.1.4 0 .5-.1.2-.2.3-.3.5l-.4.5c-.1.1-.3.3-.1.6.1.3.7 1.2 1.6 2 1.1 1 2 1.3 2.3 1.4.3.1.5.1.7-.1.2-.2.8-.8 1-1.1.2-.3.4-.2.7-.1.3.1 1.7.8 2 .9.3.1.5.2.6.3.1.1.1.7-.2 1.4Z"/></svg>',
+      linkedin: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3V9Zm7 0h3.8v1.7h.05c.53-1 1.82-2.05 3.75-2.05 4 0 4.75 2.65 4.75 6.1V21h-4v-5.4c0-1.3-.02-3-1.83-3-1.83 0-2.1 1.43-2.1 2.9V21h-4V9Z"/></svg>',
+      instagram:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>',
+      youtube:  '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 7.5a3 3 0 0 0-2.1-2.1C19 5 12 5 12 5s-7 0-8.9.4A3 3 0 0 0 1 7.5C.6 9.4.6 12 .6 12s0 2.6.4 4.5a3 3 0 0 0 2.1 2.1C5 19 12 19 12 19s7 0 8.9-.4a3 3 0 0 0 2.1-2.1c.4-1.9.4-4.5.4-4.5s0-2.6-.4-4.5ZM9.8 15.5v-7l6 3.5-6 3.5Z"/></svg>',
+      link:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 1 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 1 0 7 7l1-1"/></svg>'
+    };
+
+    /* ----- Helpers ----- */
+    function hexToHsl(hex) {
+      hex = String(hex || '').replace('#','');
+      if (hex.length === 3) hex = hex.split('').map(c => c+c).join('');
+      if (!/^[0-9a-fA-F]{6}$/.test(hex)) hex = '888888';
+      const r = parseInt(hex.slice(0,2),16)/255;
+      const g = parseInt(hex.slice(2,4),16)/255;
+      const b = parseInt(hex.slice(4,6),16)/255;
+      const max = Math.max(r,g,b), min = Math.min(r,g,b);
+      let h, s, l = (max+min)/2;
+      if (max === min) { h = s = 0; }
+      else {
+        const d = max - min;
+        s = l > 0.5 ? d/(2-max-min) : d/(max+min);
+        switch (max) {
+          case r: h = (g-b)/d + (g < b ? 6 : 0); break;
+          case g: h = (b-r)/d + 2; break;
+          case b: h = (r-g)/d + 4; break;
+        }
+        h /= 6;
+      }
+      return { h: h*360, s: s*100, l: l*100 };
+    }
+    function gradientFor(hex) {
+      // Confident linear base; the specular sheen on .face::after handles the
+      // glass highlight so the gradient itself stays a touch deeper.
+      const { h, s, l } = hexToHsl(hex);
+      const top = `hsl(${h.toFixed(0)} ${Math.min(82, s+4).toFixed(0)}% ${Math.min(56, l+5).toFixed(0)}%)`;
+      const bot = `hsl(${h.toFixed(0)} ${Math.max(28, s-10).toFixed(0)}% ${Math.max(10, l-28).toFixed(0)}%)`;
+      return `linear-gradient(165deg, ${top} 0%, ${bot} 100%)`;
+    }
+    function urlHost(url) {
+      try { return new URL(url).host.replace(/^www\./,''); } catch { return ''; }
+    }
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    /* ----- Data loading ----- */
+    async function loadData() {
+      try {
+        const res = await fetch('cards.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error('no file');
+        return await res.json();
+      } catch (e) {
+        return FALLBACK;
+      }
+    }
+
+    /* ----- Renderers ----- */
+    function renderProfile(p) {
+      const about = Array.isArray(p.about) ? p.about : [];
+      // First about section without a title (the manifesto) is shown inline on
+      // desktop. CSS hides .front-manifesto on mobile.
+      const manifesto = (about.find(s => s && !s.title) || {}).body || '';
+      document.getElementById('profile').innerHTML = `
+        <article class="profile-card" id="profile-card" aria-label="Профиль ${escapeHtml(p.name)}">
+          <div class="card-inner">
+            <div class="face front">
+              <img class="avatar" src="${p.photo}" alt="${escapeHtml(p.name)}" />
+              <div class="name-block">
+                <h1>${escapeHtml(p.name)}</h1>
+                <p>${escapeHtml(p.title || '')}</p>
+                ${manifesto ? `<p class="front-manifesto">${escapeHtml(manifesto)}</p>` : ''}
+              </div>
+            </div>
+            <div class="face back">
+              <div class="back-top">
+                <div class="back-title">
+                  ${p.type ? `<p class="back-type">${escapeHtml(p.type)}</p>` : ''}
+                  <h3>${escapeHtml(p.name)}</h3>
+                </div>
+                <button class="close-btn" type="button" aria-label="Закрыть" data-close>${ICON_CLOSE}</button>
+              </div>
+              ${p.title ? `<p class="back-tagline">${escapeHtml(p.title)}</p>` : ''}
+              <div class="scroll">
+                ${about.map(s => `
+                  <div class="section">
+                    ${s.title ? `<h4>${escapeHtml(s.title)}</h4>` : ''}
+                    <p>${escapeHtml(s.body || '')}</p>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        </article>
+      `;
+      const card = document.getElementById('profile-card');
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('[data-close]')) {
+          card.classList.remove('is-flipped');
+          return;
+        }
+        card.classList.toggle('is-flipped');
+      });
+    }
+    function renderContacts(items) {
+      const el = document.getElementById('contacts');
+      if (!items || !items.length) { el.style.display = 'none'; return; }
+      el.innerHTML = items.map(c => `
+        <a class="action-btn" href="${c.url}" target="_blank" rel="noopener noreferrer">
+          ${ICONS[c.icon] || ICONS.link}<span>${escapeHtml(c.label)}</span>
+        </a>
+      `).join('');
+    }
+    function renderFooter(f) {
+      document.getElementById('footer').innerHTML = `
+        <span class="brand-row">${f && f.logo ? `<img src="${f.logo}" alt="" />` : ''}${escapeHtml((f && f.brand) || '')}</span>
+        <span>© ${(f && f.year) || new Date().getFullYear()}</span>
+      `;
+    }
+
+    /* ----- Back helpers (sections / pills / CTA) ----- */
+    function renderSections(project) {
+      let sections = project.sections;
+      // Migration: if no sections array but old long_description exists,
+      // promote it to a single untitled section so existing data still renders.
+      if (!Array.isArray(sections) || sections.length === 0) {
+        if (project.long_description) {
+          sections = [{ title: '', body: project.long_description }];
+        } else if (project.description) {
+          sections = [{ title: '', body: project.description }];
+        } else {
+          return '';
+        }
+      }
+      return sections.map(s => `
+        <div class="section">
+          ${s.title ? `<h4>${escapeHtml(s.title)}</h4>` : ''}
+          <p>${escapeHtml(s.body || '')}</p>
+        </div>
+      `).join('');
+    }
+
+    function renderPills(links) {
+      if (!links || !links.length) return '';
+      const valid = links.filter(l => l && l.url);
+      if (!valid.length) return '';
+      return `<div class="pills">${valid.map(l => `
+        <a class="pill" href="${escapeHtml(l.url)}" target="_blank" rel="noopener noreferrer" data-goto>
+          ${ICONS[l.icon] || ICONS.link}<span>${escapeHtml(l.label || '')}</span>
+        </a>
+      `).join('')}</div>`;
+    }
+
+    /* Carousel of sister cards — invoked when the project belongs to a
+       group of 2+ cards (e.g. CineShift + CineShift.org). Renders one page
+       per sister, each with its own header (type, name, variant), tagline,
+       sections, pills and CTA. The track starts on the tapped sister's
+       index, so the carousel feels anchored to the card you flipped. */
+    function renderSiblingCarousel(project) {
+      const siblings = Array.isArray(project._siblings) ? project._siblings : [];
+      if (siblings.length < 2) return '';
+      // Каждая страница карусели — точная копия структуры обычной back-стороны:
+      // .back-top (заголовок + close в одну строку), tagline, scroll, pills, cta.
+      // Стили совпадают 1-в-1 с не-сестринскими карточками.
+      const pagesHtml = siblings.map(s => {
+        const variantBadge = s.variant
+          ? `<span class="back-variant-badge">${escapeHtml(s.variant)}</span>`
+          : '';
+        return `
+          <div class="variant-page">
+            <div class="back-top">
+              <div class="back-title">
+                ${s.type ? `<p class="back-type">${escapeHtml(s.type)}</p>` : ''}
+                <h3>${escapeHtml(s.name)}${variantBadge ? ' ' + variantBadge : ''}</h3>
+              </div>
+              <button class="close-btn" type="button" aria-label="Закрыть" data-close>${ICON_CLOSE}</button>
+            </div>
+            ${s.description ? `<p class="back-tagline">${escapeHtml(s.description)}</p>` : ''}
+            <div class="scroll">${renderSections(s)}</div>
+            ${renderDirections(s.directions || [])}
+            ${renderPills(s.links || [])}
+            ${renderCta(s)}
+          </div>`;
+      }).join('');
+      const startIdx = Math.max(0, Math.min(siblings.length - 1, project._siblingIdx || 0));
+      const dotsHtml = siblings.map((s, i) =>
+        `<button type="button" class="variant-dot ${i===startIdx?'active':''}" data-variant-idx="${i}" aria-label="${escapeHtml(s.variant || s.name)}"></button>`
+      ).join('');
+      return `
+        <div class="variant-carousel">
+          <div class="variant-viewport">
+            <div class="variant-track" data-current="${startIdx}" style="transform: translateX(-${startIdx * 100}%)">${pagesHtml}</div>
+          </div>
+          <div class="variant-dots">${dotsHtml}</div>
+        </div>`;
+    }
+
+    /* Legacy carousel for projects with inline variants[] field — kept for
+       backwards compatibility but rarely used now (sister cards are the
+       preferred pattern). */
+    function renderVariantCarousel(project) {
+      const variants = Array.isArray(project.variants) ? project.variants.filter(v => v) : [];
+      if (variants.length < 2) return '';
+      const pagesHtml = variants.map(v => {
+        const sec  = Array.isArray(v.sections) ? v.sections : [];
+        const sectionsHtml = sec.map(s => `
+          <div class="section">
+            ${s.title ? `<h4>${escapeHtml(s.title)}</h4>` : ''}
+            <p>${escapeHtml(s.body || '')}</p>
+          </div>`).join('');
+        const cta = v.cta || {};
+        const ctaUrl = cta.url || project.url || '';
+        const ctaLabel = cta.label || (ctaUrl ? 'Перейти' : '');
+        const ctaHtml = ctaUrl
+          ? `<a class="goto" href="${escapeHtml(ctaUrl)}" target="_blank" rel="noopener noreferrer" data-goto>${escapeHtml(ctaLabel)}${urlHost(ctaUrl) ? ' · ' + escapeHtml(urlHost(ctaUrl)) : ''}</a>`
+          : `<span class="goto disabled">Ссылка скоро</span>`;
+        return `
+          <div class="variant-page">
+            ${v.label  ? `<p class="variant-label">${escapeHtml(v.label)}</p>` : ''}
+            ${v.description ? `<p class="back-tagline">${escapeHtml(v.description)}</p>` : ''}
+            <div class="scroll">${sectionsHtml}</div>
+            ${renderPills(v.links || [])}
+            ${ctaHtml}
+          </div>`;
+      }).join('');
+      const dotsHtml = variants.map((v, i) =>
+        `<button type="button" class="variant-dot ${i===0?'active':''}" data-variant-idx="${i}" aria-label="${escapeHtml(v.label || ('Вариант ' + (i+1)))}"></button>`
+      ).join('');
+      return `
+        <div class="variant-carousel">
+          <div class="variant-viewport">
+            <div class="variant-track" data-current="0">${pagesHtml}</div>
+          </div>
+          <div class="variant-dots">${dotsHtml}</div>
+        </div>`;
+    }
+
+    function renderDirections(directions) {
+      if (!Array.isArray(directions) || !directions.length) return '';
+      const valid = directions.filter(d => d && (d.title || d.body));
+      if (!valid.length) return '';
+      return `<div class="directions">${valid.map(d => {
+        const tag = d.url ? 'a' : 'div';
+        const href = d.url ? `href="${escapeHtml(d.url)}" target="_blank" rel="noopener noreferrer" data-goto` : '';
+        return `
+        <${tag} class="direction" ${href}>
+          <div class="dir-body">
+            ${d.title ? `<div class="dir-title">${escapeHtml(d.title)}</div>` : ''}
+            ${d.body  ? `<div class="dir-desc">${escapeHtml(d.body)}</div>`   : ''}
+          </div>
+          ${d.url ? `<span class="dir-arrow" aria-hidden="true">›</span>` : ''}
+        </${tag}>`;
+      }).join('')}</div>`;
+    }
+
+    function renderCta(project) {
+      const cta = project.cta || {};
+      const url = cta.url || project.url || '';
+      const label = cta.label || (url ? 'Перейти' : '');
+      if (!url) return `<span class="goto disabled">Ссылка скоро</span>`;
+      const host = urlHost(url);
+      return `<a class="goto" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" data-goto>${escapeHtml(label)}${host ? ' · ' + escapeHtml(host) : ''}</a>`;
+    }
+
+    /* ----- Stack (Apple Wallet model): two states per card ----- */
+    // All cards are physically the same size at peek/active (TOP_H);
+    // flipped height is измеряется динамически под контент back-стороны
+    // and overlap each other — only the top PEEK_H of each non-last card peeks
+    // out from under the card below. The last card sits fully visible at the
+    // bottom of the stack with its slogan showing. Tap any card to flip it;
+    // tap again or the × button to flip back.
+    const PEEK_H = 60;
+    const SIBLING_PEEK_H = 15;  // максимально тесный зазор между «сёстрами» — почти впритык
+    const TOP_H = 280;
+    const FLIPPED_H_MIN = 360;  // нижняя граница flipped-высоты; реальная подстраивается под текст
+    const FLIPPED_H_MAX = 720;  // верхняя граница, после которой включается внутренний scroll
+    const BACK_PADDING_V = 34;  // 18px top + 16px bottom (.face .back padding)
+
+    /* Меряет натуральную высоту back-стороны конкретной карты. Использует
+       offsetHeight для не-scroll элементов и scrollHeight для .scroll
+       (он даёт высоту контента, даже если container ограничен по высоте).
+       Для карт с каруселью сестёр — берёт МАКСИМУМ по всем страницам, чтобы
+       при свайпе ни одна страница не давала внутренний скролл. */
+    function measureFlippedHeight(card) {
+      const back = card.querySelector('.face.back');
+      if (!back) return FLIPPED_H_MIN;
+      const variantPages = back.querySelectorAll('.variant-page');
+      const measureContainer = (container) => {
+        let total = BACK_PADDING_V;
+        Array.from(container.children).forEach(child => {
+          if (child.classList.contains('scroll')) {
+            total += child.scrollHeight;
+          } else {
+            total += child.offsetHeight;
+          }
+          const styles = getComputedStyle(child);
+          total += parseInt(styles.marginTop || '0', 10) + parseInt(styles.marginBottom || '0', 10);
+        });
+        return total;
+      };
+      let total;
+      if (variantPages.length) {
+        // Берём максимум по всем сёстрам — карта подстраивается под самую
+        // длинную страницу, чтобы при свайпе скроллбар не появлялся.
+        total = 0;
+        variantPages.forEach(page => {
+          const h = measureContainer(page);
+          if (h > total) total = h;
+        });
+        const dots = back.querySelector('.variant-dots');
+        if (dots) {
+          total += dots.offsetHeight;
+          const dotsStyles = getComputedStyle(dots);
+          total += parseInt(dotsStyles.marginTop || '0', 10) + parseInt(dotsStyles.marginBottom || '0', 10);
+        }
+      } else {
+        total = measureContainer(back);
+      }
+      // +16 px буфер на subpixel rounding и margin collapse, чтобы
+      // контент гарантированно вмещался без 1-2 px оверфлоу.
+      return Math.max(FLIPPED_H_MIN, Math.min(FLIPPED_H_MAX, total + 16));
+    }
+
+    /* Resolve background to a CSS value, detecting the mode from project.background:
+       - empty                    → auto gradient from accent
+       - "linear-gradient(...)"   → use as-is (custom gradient)
+       - "url(...)"               → use as-is
+       - "#hex" / "rgb()" / "hsl()" → solid color
+       - "data:..."               → wrap as url()
+       - anything else            → treat as image URL (path or absolute) */
+    function hexToRgb(hex) {
+      let h = String(hex || '').replace('#','');
+      if (h.length === 3) h = h.split('').map(c => c+c).join('');
+      if (!/^[0-9a-fA-F]{6}$/.test(h)) h = '888888';
+      return {
+        r: parseInt(h.slice(0,2),16),
+        g: parseInt(h.slice(2,4),16),
+        b: parseInt(h.slice(4,6),16),
+      };
+    }
+    function resolveBackground(project) {
+      const bg = (project.background || '').trim();
+      if (!bg) return gradientFor(project.accent || '#888888');
+      // Liquid Glass spotlight: dark translucent surface + a radial glow
+      // tinted by the project's accent (like the iOS dashboard hero card).
+      if (bg === 'glass') {
+        const { r, g, b } = hexToRgb(project.accent || '#888888');
+        return `radial-gradient(circle at 78% 18%, rgba(${r},${g},${b},0.55) 0%, rgba(${r},${g},${b},0.10) 28%, transparent 55%), rgba(20,20,24,0.78)`;
+      }
+      if (/^(linear-gradient|radial-gradient|conic-gradient|url\()/i.test(bg)) return bg;
+      if (/^(#|rgb\(|hsl\()/i.test(bg)) return bg;
+      return `url("${bg.replace(/"/g, '\\"')}")`;
+    }
+
+    function createCard(project, projectIdx) {
+      const card = document.createElement('article');
+      card.className = 'card';
+      if ((project.background || '').trim() === 'glass') card.classList.add('is-glass');
+      card.dataset.idx = projectIdx;
+
+      card.style.setProperty('--card-bg', resolveBackground(project));
+
+      const initials = (project.name || '?').slice(0, 1).toUpperCase();
+      const logoInner = project.logo
+        ? `<img src="${escapeHtml(project.logo)}" alt="${escapeHtml(project.name)}" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'initial',textContent:'${initials}'}))" />`
+        : `<span class="initial">${initials}</span>`;
+
+      const host = urlHost(project.url);
+      const hasUrl = !!project.url;
+
+      card.innerHTML = `
+        <div class="card-inner">
+          <div class="face front">
+            <div class="bg-layer"></div>
+            <div class="overlay"></div>
+            <div class="content">
+              <div class="top-row">
+                <span class="logo-box">${logoInner}</span>
+                <span class="brand-name">${escapeHtml(project.name)}</span>
+                ${project.variant ? `<span class="variant">${escapeHtml(project.variant)}</span>` : ''}
+                ${project._siblingTotal > 1 ? `<span class="pair-indicator" aria-label="${project._siblingTotal} в группе">${project._siblingTotal}</span>` : ''}
+              </div>
+              <div class="slogan-wrap">
+                ${project.type ? `<p class="type-label">${escapeHtml(project.type)}</p>` : ''}
+                <h2 class="slogan">${escapeHtml(project.description || project.name)}</h2>
+              </div>
+            </div>
+          </div>
+          <div class="face back">
+            ${(project._siblings && project._siblings.length > 1)
+              ? renderSiblingCarousel(project)
+              : `
+                <div class="back-top">
+                  <div class="back-title">
+                    ${project.type ? `<p class="back-type">${escapeHtml(project.type)}</p>` : ''}
+                    <h3>${escapeHtml(project.name)}</h3>
+                  </div>
+                  <button class="close-btn" type="button" aria-label="Закрыть" data-close>${ICON_CLOSE}</button>
+                </div>
+                ${project.description ? `<p class="back-tagline">${escapeHtml(project.description)}</p>` : ''}
+                <div class="scroll">
+                  ${renderSections(project)}
+                </div>
+                ${renderDirections(project.directions || [])}
+                ${renderPills(project.links || [])}
+                ${renderCta(project)}
+              `}
+          </div>
+        </div>
+        ${(project._siblings && project._siblings.length > 1) ? `
+          <button type="button" class="card-nav prev" data-variant-nav="prev" aria-label="Предыдущая сестра" aria-disabled="${(project._siblingIdx || 0) === 0}">${ICON_CHEVRON_LEFT}</button>
+          <button type="button" class="card-nav next" data-variant-nav="next" aria-label="Следующая сестра" aria-disabled="${(project._siblingIdx || 0) === project._siblings.length - 1}">${ICON_CHEVRON_RIGHT}</button>
+        ` : ''}
+      `;
+
+      return card;
+    }
+
+    function initStack(projects) {
+      const stack = document.getElementById('stack');
+      stack.innerHTML = '';
+
+      // Skip cards flagged as hidden (live in the admin archive).
+      projects = (projects || []).filter(p => !p.hidden);
+
+      // Detect sibling groups — cards with the same `group` value are
+      // "attached" peers (e.g. CineShift B2C + CineShift B2B). For each
+      // member attach _siblingIdx / _siblingTotal (for the digit pill on
+      // the front) and _siblings (full array, used to render a carousel
+      // on the back so tapping any sister opens a swipeable view of all).
+      const groups = {};
+      projects.forEach(p => {
+        if (!p.group) return;
+        (groups[p.group] = groups[p.group] || []).push(p);
+      });
+      Object.values(groups).forEach(arr => {
+        if (arr.length < 2) return;
+        arr.forEach((p, i) => {
+          p._siblingIdx = i;
+          p._siblingTotal = arr.length;
+          p._siblings = arr;
+        });
+      });
+
+      // Карта-«представитель» группы сестёр — это первая сестра.
+      // Возвращает индекс первой сестры группы для любого проекта,
+      // или сам индекс, если проект одиночный.
+      function leaderIdx(idx) {
+        const p = projects[idx];
+        if (!p._siblings || p._siblings.length < 2) return idx;
+        return projects.indexOf(p._siblings[0]);
+      }
+
+      // Трёхуровневая модель: peek → active → flipped.
+      //   expandedIdx: какая карта поднята из стопки (active или flipped).
+      //   -1 = ни одна не открыта.
+      //   isFlipped: true только когда expandedIdx-карта перевёрнута.
+      let expandedIdx = -1;
+      let isFlipped = false;
+
+      const cards = projects.map((p, i) => createCard(p, i));
+      cards.forEach(c => stack.appendChild(c));
+
+      function apply() {
+        const lastIdx = cards.length - 1;
+        let y = 0;
+        cards.forEach((card, idx) => {
+          const project = projects[idx];
+
+          // Сёстры-группа: если первая сестра группы развёрнута (active или
+          // flipped), все остальные сёстры этой группы полностью прячутся
+          // из стопки. Карусель внутри первой сестры показывает их
+          // контент через свайп/стрелки.
+          const isSiblingSecondary =
+            project._siblings && project._siblings.length > 1 &&
+            project._siblingIdx > 0;
+          const groupLeader = isSiblingSecondary ? leaderIdx(idx) : -1;
+          const groupOpen = isSiblingSecondary && expandedIdx === groupLeader;
+          if (groupOpen) {
+            card.style.display = 'none';
+            return;
+          }
+          card.style.display = '';
+
+          const isLast = idx === lastIdx;
+          const isExplicit = expandedIdx === idx;
+          const isActive = isExplicit || (isLast && expandedIdx === -1);
+          const cardIsFlipped = isExplicit && isFlipped;
+          // Для flipped — динамическая высота под текст контента.
+          // Для peek/active — фиксированная TOP_H.
+          const cardH = cardIsFlipped ? measureFlippedHeight(card) : TOP_H;
+
+          card.style.top = y + 'px';
+          card.style.height = cardH + 'px';
+          card.style.zIndex = String(isExplicit ? 100 : (10 + idx));
+          card.classList.toggle('is-flipped', cardIsFlipped);
+          card.classList.toggle('is-active', isActive && !cardIsFlipped);
+          card.setAttribute('aria-hidden', 'false');
+
+          // Layout advance:
+          //  - active/flipped/last → full height (fully visible)
+          //  - else if next card is the same sibling group → tighter peek
+          //    (visually "attached" pair, gap is SIBLING_PEEK_H)
+          //  - else regular peek (PEEK_H)
+          const nextProj = projects[idx + 1];
+          const isSiblingPair =
+            !isActive && !isLast &&
+            projects[idx].group && nextProj &&
+            projects[idx].group === nextProj.group;
+          if (isActive || isLast) {
+            y += cardH;
+          } else if (isSiblingPair) {
+            y += SIBLING_PEEK_H;
+          } else {
+            y += PEEK_H;
+          }
+        });
+        stack.style.height = y + 'px';
+      }
+
+      // Helper: switch active variant in a card's carousel
+      function setVariant(card, targetIdx) {
+        const track = card.querySelector('.variant-track');
+        if (!track) return;
+        const pages = track.querySelectorAll('.variant-page');
+        const clamped = Math.max(0, Math.min(pages.length - 1, targetIdx));
+        track.dataset.current = clamped;
+        track.style.transform = `translateX(-${clamped * 100}%)`;
+        card.querySelectorAll('.variant-dot').forEach((d, i) => {
+          d.classList.toggle('active', i === clamped);
+        });
+        // Обновить aria-disabled на всех стрелках (.card-nav снаружи карты
+        // и .variant-nav внутри карусели, если она ещё используется)
+        card.querySelectorAll('[data-variant-nav="prev"]').forEach(b => b.setAttribute('aria-disabled', String(clamped === 0)));
+        card.querySelectorAll('[data-variant-nav="next"]').forEach(b => b.setAttribute('aria-disabled', String(clamped === pages.length - 1)));
+      }
+
+      cards.forEach((card) => {
+        const idx = +card.dataset.idx;
+
+        // Прямые обработчики на навигации карусели. Регистрируем
+        // через mousedown + click — на случай если click где-то по
+        // пути съедается, mousedown точно дойдёт. Capture phase + куча
+        // stop'ов и preventDefault.
+        card.querySelectorAll('[data-variant-nav]').forEach(navBtn => {
+          const navHandler = (ev) => {
+            ev.stopImmediatePropagation();
+            ev.stopPropagation();
+            ev.preventDefault();
+            if (navBtn.getAttribute('aria-disabled') === 'true') return;
+            const trk = card.querySelector('.variant-track');
+            const curr = +(trk && trk.dataset.current) || 0;
+            const target = navBtn.dataset.variantNav === 'next' ? curr + 1 : curr - 1;
+            setVariant(card, target);
+          };
+          navBtn.addEventListener('click', navHandler, true);
+          navBtn.addEventListener('mousedown', (ev) => {
+            ev.stopImmediatePropagation();
+            ev.stopPropagation();
+          }, true);
+        });
+        card.querySelectorAll('.variant-dot').forEach(dotBtn => {
+          dotBtn.addEventListener('click', (ev) => {
+            ev.stopImmediatePropagation();
+            ev.stopPropagation();
+            ev.preventDefault();
+            setVariant(card, +dotBtn.dataset.variantIdx);
+          }, true);
+        });
+
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('[data-goto]')) return;
+          // Страховка — если по какой-то причине прямой listener
+          // не сработал, тут тоже отлавливаем nav/dot и выходим.
+          if (e.target.closest('[data-variant-nav]')) return;
+          if (e.target.closest('.variant-dot')) return;
+          if (e.target.closest('[data-close]')) {
+            // Закрыть → стопка
+            expandedIdx = -1;
+            isFlipped = false;
+            apply();
+            return;
+          }
+          // Трёхуровневый цикл: peek → active → flipped → peek.
+          // Клик по ЛЮБОЙ из сестёр в группе раскрывает первую сестру.
+          // Карусель всегда стартует с первой страницы — независимо от
+          // того, по какой сестре в стопке кликнули. Пользователь может
+          // перейти на вторую сестру через стрелку / точку / свайп.
+          const effIdx = leaderIdx(idx);
+          const lastIdx = cards.length - 1;
+          const isExplicit = (expandedIdx === effIdx);
+          const isActiveNow =
+            isExplicit || (effIdx === lastIdx && expandedIdx === -1);
+          if (!isActiveNow) {
+            // Peek → active. Гарантируем стартовую страницу = 0.
+            expandedIdx = effIdx;
+            isFlipped = false;
+            setVariant(cards[effIdx], 0);
+          } else if (!isFlipped) {
+            // Active → flipped
+            expandedIdx = effIdx;
+            isFlipped = true;
+          } else {
+            // Flipped → peek (стопка). При следующем открытии — снова с
+            // первой страницы (мы сбрасываем при peek→active).
+            expandedIdx = -1;
+            isFlipped = false;
+          }
+          apply();
+        });
+
+        // Horizontal swipe on the variant track
+        const track = card.querySelector('.variant-track');
+        if (track) {
+          let touchStartX = 0;
+          let touchStartY = 0;
+          let touching = false;
+          track.addEventListener('touchstart', e => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touching = true;
+          }, { passive: true });
+          track.addEventListener('touchend', e => {
+            if (!touching) return;
+            touching = false;
+            const dx = e.changedTouches[0].clientX - touchStartX;
+            const dy = e.changedTouches[0].clientY - touchStartY;
+            // Only treat as swipe if horizontal dominates and big enough
+            if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+              e.stopPropagation();
+              const curr = +track.dataset.current || 0;
+              setVariant(card, dx < 0 ? curr + 1 : curr - 1);
+            }
+          }, { passive: true });
+        }
+      });
+
+      // Lay out once with transitions off, then enable them so first paint
+      // doesn't animate every card from its CSS default into place.
+      apply();
+      requestAnimationFrame(() => {
+        cards.forEach(c => c.classList.add('ready'));
+      });
+    }
+
+    /* ----- Starfield ----- */
+    function generateStarfield() {
+      const field = document.getElementById('starfield');
+      if (!field) return;
+      const frag = document.createDocumentFragment();
+      const COUNT = 140;
+
+      function setDrift(el, big) {
+        // Random offset in pixels. Bigger stars allowed bigger drift, giving
+        // a subtle parallax effect (closer stars move more).
+        const range = big ? 36 : 22;
+        const r = () => (Math.random() * 2 - 1) * range;
+        el.style.setProperty('--dx0', r().toFixed(1) + 'px');
+        el.style.setProperty('--dy0', r().toFixed(1) + 'px');
+        el.style.setProperty('--dx1', r().toFixed(1) + 'px');
+        el.style.setProperty('--dy1', r().toFixed(1) + 'px');
+        el.style.setProperty('--drift-d', (28 + Math.random() * 40).toFixed(1) + 's');
+        el.style.setProperty('--drift-delay', (Math.random() * 20).toFixed(1) + 's');
+      }
+
+      for (let i = 0; i < COUNT; i++) {
+        const s = document.createElement('div');
+        s.className = 'star';
+        const r = Math.random();
+        // Slightly bigger overall: dust 1.5 → highlights up to 3px
+        const size = r < 0.62 ? 1.5 : (r < 0.85 ? 2 : (r < 0.96 ? 2.5 : 3));
+        const op = 0.25 + Math.random() * 0.65;
+        s.style.width = size + 'px';
+        s.style.height = size + 'px';
+        s.style.left = (Math.random() * 100).toFixed(2) + '%';
+        s.style.top = (Math.random() * 100).toFixed(2) + '%';
+        s.style.opacity = op.toFixed(2);
+        if (size >= 2) {
+          s.style.boxShadow = `0 0 ${size * 2.2}px ${size * 0.7}px rgba(255,255,255,${(op * 0.5).toFixed(2)})`;
+        }
+        setDrift(s, size >= 2);
+        // ~45% also pulse — pairs nicely with drift (different property, no conflict)
+        if (Math.random() < 0.45) {
+          s.classList.add('tw');
+          s.style.setProperty('--d', (2.6 + Math.random() * 3.4).toFixed(2) + 's');
+          s.style.setProperty('--delay', (Math.random() * 5).toFixed(2) + 's');
+          s.style.setProperty('--max', op.toFixed(2));
+          s.style.setProperty('--min', (op * 0.20).toFixed(2));
+        }
+        frag.appendChild(s);
+      }
+
+      // 3 feature "guide stars" — bigger, brighter, longer drift, always pulse
+      for (let i = 0; i < 3; i++) {
+        const s = document.createElement('div');
+        s.className = 'star tw';
+        const size = (3.5 + Math.random() * 1.5).toFixed(2);
+        s.style.width = size + 'px';
+        s.style.height = size + 'px';
+        s.style.left = (10 + Math.random() * 80).toFixed(2) + '%';
+        s.style.top  = (5 + Math.random() * 85).toFixed(2) + '%';
+        s.style.opacity = '0.90';
+        s.style.boxShadow = `0 0 ${size * 3}px ${size * 1.4}px rgba(255,255,255,0.45)`;
+        setDrift(s, true);
+        s.style.setProperty('--d', (3 + Math.random() * 2).toFixed(2) + 's');
+        s.style.setProperty('--delay', (Math.random() * 3).toFixed(2) + 's');
+        s.style.setProperty('--max', '0.95');
+        s.style.setProperty('--min', '0.45');
+        frag.appendChild(s);
+      }
+
+      field.appendChild(frag);
+    }
+
+    /* ----- Boot ----- */
+    (async () => {
+      generateStarfield();
+      const data = await loadData();
+      renderProfile(data.profile || {});
+      initStack(data.projects || []);
+      renderContacts(data.contacts || []);
+      renderFooter(data.footer || {});
+    })();
+  </script>
+</body>
+</html>

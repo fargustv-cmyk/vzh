@@ -1,0 +1,1167 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Админка · vozhakin.group</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b0b10;
+      --panel: #14161f;
+      --panel-2: #1b1e2a;
+      --border: rgba(255,255,255,0.08);
+      --border-strong: rgba(255,255,255,0.18);
+      --text: #f5f5f7;
+      --muted: #9ca3af;
+      --accent: #b48a5b;
+      --danger: #ef4444;
+      --ok: #22c55e;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
+    body { min-height: 100vh; padding: 24px 16px 80px; }
+    .container { max-width: 880px; margin: 0 auto; }
+
+    header.topbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    header.topbar h1 { margin: 0; font-size: 20px; font-weight: 700; }
+    header.topbar .muted { color: var(--muted); font-size: 13px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    button, .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      padding: 9px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background .15s ease, border-color .15s ease, transform .1s ease;
+    }
+    button:hover, .btn:hover { background: var(--panel-2); border-color: var(--border-strong); }
+    button:active { transform: translateY(1px); }
+    button.primary { background: var(--accent); border-color: var(--accent); color: #1a1208; font-weight: 600; }
+    button.primary:hover { filter: brightness(1.08); }
+    button.danger { color: #fda4a4; border-color: rgba(239,68,68,0.4); }
+    button.danger:hover { background: rgba(239,68,68,0.1); }
+    button.ghost { background: transparent; }
+
+    .section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+    .section h2 { margin: 0 0 14px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    input[type="text"], input[type="url"], textarea, input[type="color"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-family: inherit;
+      font-size: 14px;
+      transition: border-color .15s ease;
+    }
+    input:focus, textarea:focus, input[type="color"]:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    input[type="color"] { padding: 4px; height: 40px; cursor: pointer; }
+    textarea { resize: vertical; min-height: 60px; }
+
+    .project-list { display: flex; flex-direction: column; gap: 10px; }
+    .project-row {
+      display: grid;
+      grid-template-columns: auto 44px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .project-row .handle {
+      cursor: grab;
+      color: var(--muted);
+      user-select: none;
+      padding: 0 4px;
+      font-size: 18px;
+      line-height: 1;
+    }
+    .project-row.dragging { opacity: 0.4; }
+    .project-row.drag-over { border-color: var(--accent); }
+    .project-row.archived {
+      background: rgba(255,255,255,0.02);
+      opacity: 0.62;
+    }
+    .project-row.archived .logo-prev { filter: saturate(0.55); }
+    .arch-badge {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 1px 7px;
+      background: rgba(255,255,255,0.08);
+      border: 0.5px solid var(--border);
+      border-radius: 999px;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 500;
+      vertical-align: 1px;
+    }
+    .project-row .logo-prev {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.05);
+      object-fit: contain;
+      padding: 4px;
+    }
+    .project-row .meta { min-width: 0; }
+    .project-row .meta .name { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .project-row .meta .desc { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .project-row .meta .url { color: var(--accent); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .project-row .row-actions { display: flex; gap: 6px; }
+    .project-row .row-actions button { padding: 6px 10px; font-size: 12px; border-radius: 8px; }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 24px 16px;
+      z-index: 100;
+      overflow-y: auto;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      width: 100%;
+      max-width: 520px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin: auto;
+    }
+    .modal h3 { margin: 0 0 16px; font-size: 16px; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
+    /* Segmented control for background mode (Авто / Фото / Цвет / Градиент) */
+    .bg-modes {
+      display: flex;
+      gap: 3px;
+      background: rgba(255,255,255,0.04);
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      padding: 3px;
+      margin-bottom: 10px;
+    }
+    .bg-mode-btn {
+      flex: 1;
+      padding: 7px 8px;
+      background: transparent;
+      border: none;
+      border-radius: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 160ms, color 160ms, transform 80ms;
+    }
+    .bg-mode-btn:hover { color: var(--text); }
+    .bg-mode-btn.active {
+      background: var(--panel-2);
+      color: var(--text);
+      box-shadow: inset 0 0 0 0.5px var(--border-strong);
+    }
+    .bg-pane[hidden] { display: none; }
+    .bg-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      align-items: end;
+    }
+    .bg-grid label { margin-bottom: 4px; }
+    .angle-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 10px;
+    }
+    .angle-row input[type="range"] { flex: 1; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--panel);
+      border: 1px solid var(--border-strong);
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      opacity: 0;
+      transition: all .25s ease;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    details summary { cursor: pointer; color: var(--muted); font-size: 13px; padding: 4px 0; }
+    pre.json {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 12px;
+      max-height: 320px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body style="visibility: hidden;">
+
+  <!-- ============================================================
+       Простая клиент-сайд защита админки.
+       Чтобы включить: пропишите пароль в константу ADMIN_PASS ниже
+       (например ADMIN_PASS = 'my-secret'). Пустая строка = защита
+       отключена.
+
+       Это НЕ настоящая защита — пароль виден в исходниках страницы.
+       От случайных гостей и поисковых ботов спасает, от человека
+       с базовыми знаниями DevTools — нет. Для production-защиты
+       используйте middleware.ts (рядом в этой папке) или Vercel
+       Password Protection (Pro-план).
+       ============================================================ -->
+  <script>
+    (function () {
+      const ADMIN_PASS = '';   // ← задайте пароль чтобы включить защиту
+      const KEY = 'vozhakin_admin_auth_v1';
+
+      function reveal() { document.body.style.visibility = 'visible'; }
+      function deny()   {
+        document.body.innerHTML = '<p style="color:#9ca3af;text-align:center;padding:80px 16px;font-family:-apple-system,Inter,sans-serif;font-size:14px;">Доступ закрыт</p>';
+        document.body.style.visibility = 'visible';
+      }
+
+      if (!ADMIN_PASS) { reveal(); return; }
+      if (sessionStorage.getItem(KEY) === '1') { reveal(); return; }
+
+      const input = prompt('Пароль админки:');
+      if (input === ADMIN_PASS) {
+        sessionStorage.setItem(KEY, '1');
+        reveal();
+      } else {
+        deny();
+      }
+    })();
+  </script>
+
+  <div class="container">
+    <header class="topbar">
+      <div>
+        <h1>Админка vozhakin.group</h1>
+        <div class="muted">Меняйте данные → «Скачать cards.json» → закоммитьте в репозиторий</div>
+      </div>
+      <div class="actions">
+        <label class="btn ghost" for="import-file">Импорт JSON</label>
+        <input id="import-file" type="file" accept="application/json" hidden />
+        <button id="download-btn" class="primary">Скачать cards.json</button>
+      </div>
+    </header>
+
+    <!-- PROFILE — front side -->
+    <section class="section">
+      <h2>Профиль · лицевая сторона</h2>
+      <div class="grid-2">
+        <div>
+          <label>Имя</label>
+          <input id="p-name" type="text" />
+        </div>
+        <div>
+          <label>Должность / подпись</label>
+          <input id="p-title" type="text" placeholder="Founder & Creator" />
+        </div>
+        <div>
+          <label>URL фото</label>
+          <input id="p-photo" type="text" placeholder="/profile.jpg или https://..." />
+        </div>
+        <div>
+          <label>Тип (eyebrow на обороте)</label>
+          <input id="p-type" type="text" placeholder="например Founder — необязательно" />
+        </div>
+      </div>
+    </section>
+
+    <!-- PROFILE — back side -->
+    <section class="section">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:8px;">
+        <h2 style="margin:0">Профиль · оборот «о себе»</h2>
+        <button id="add-profile-about" class="primary">+ Секция</button>
+      </div>
+      <div id="profile-about-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <p class="hint">Секции, которые видны когда тапнуть на плашку профиля. Первую можно оставить без заголовка — будет манифестом-открывашкой.</p>
+    </section>
+
+    <!-- PROJECTS -->
+    <section class="section">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:8px;">
+        <h2 style="margin:0">Проекты</h2>
+        <button id="add-project" class="primary">+ Добавить проект</button>
+      </div>
+      <div id="projects-list" class="project-list"></div>
+      <p class="hint">Перетаскивайте за «⋮⋮» чтобы менять порядок. «Скрыть» убирает карточку в архив ниже — на публичной странице она пропадает, но остаётся редактируемой здесь.</p>
+
+      <div id="archived-wrap" style="display:none; margin-top:24px; padding-top:18px; border-top:0.5px dashed var(--border);">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+          <h3 style="margin:0; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; font-weight:500;">Архив · скрытые карточки</h3>
+          <span id="archived-count" style="color:var(--muted); font-size:11px;">0</span>
+        </div>
+        <div id="archived-list" class="project-list"></div>
+        <p class="hint">Идеи и черновики. На публичной странице не отображаются. «Восстановить» возвращает в основной список выше.</p>
+      </div>
+    </section>
+
+    <!-- CONTACTS -->
+    <section class="section">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:8px;">
+        <h2 style="margin:0">Контакты</h2>
+        <button id="add-contact" class="primary">+ Добавить контакт</button>
+      </div>
+      <div id="contacts-list" class="project-list"></div>
+      <p class="hint">Доступные иконки: <code>telegram</code>, <code>email</code>, <code>whatsapp</code>, <code>linkedin</code>, <code>instagram</code>, <code>youtube</code>, <code>link</code>.</p>
+    </section>
+
+    <!-- FOOTER -->
+    <section class="section">
+      <h2>Подвал</h2>
+      <div class="grid-2">
+        <div>
+          <label>Название бренда</label>
+          <input id="f-brand" type="text" />
+        </div>
+        <div>
+          <label>URL логотипа</label>
+          <input id="f-logo" type="text" />
+        </div>
+        <div>
+          <label>Год</label>
+          <input id="f-year" type="text" />
+        </div>
+      </div>
+    </section>
+
+    <details>
+      <summary>Посмотреть текущий JSON</summary>
+      <pre id="json-preview" class="json"></pre>
+    </details>
+  </div>
+
+  <!-- Modal for editing project/contact -->
+  <div id="modal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal">
+      <h3 id="modal-title">Карточка</h3>
+      <div id="modal-body"></div>
+      <div class="modal-footer">
+        <button class="ghost" data-close>Отмена</button>
+        <button class="primary" id="modal-save">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // Fallback for older browsers / environments without structuredClone
+    if (typeof structuredClone === 'undefined') {
+      window.structuredClone = (v) => JSON.parse(JSON.stringify(v));
+    }
+
+    const STORAGE_KEY = 'vozhakin_cards_v3';
+
+    /* Mirrors index.html's gradientFor — used for "Auto" background preview */
+    function gradientForPreview(hex) {
+      function toHsl(h) {
+        h = String(h || '').replace('#','');
+        if (h.length === 3) h = h.split('').map(c=>c+c).join('');
+        if (!/^[0-9a-fA-F]{6}$/.test(h)) h = '888888';
+        const r = parseInt(h.slice(0,2),16)/255, g = parseInt(h.slice(2,4),16)/255, b = parseInt(h.slice(4,6),16)/255;
+        const max=Math.max(r,g,b), min=Math.min(r,g,b);
+        let H,S,L=(max+min)/2;
+        if (max===min){H=S=0;}
+        else {
+          const d=max-min; S = L>0.5 ? d/(2-max-min) : d/(max+min);
+          switch(max){case r:H=(g-b)/d+(g<b?6:0);break;case g:H=(b-r)/d+2;break;case b:H=(r-g)/d+4;break;}
+          H/=6;
+        }
+        return {h:H*360, s:S*100, l:L*100};
+      }
+      const v = toHsl(hex);
+      const top = `hsl(${v.h.toFixed(0)} ${Math.min(82,v.s+4).toFixed(0)}% ${Math.min(56,v.l+5).toFixed(0)}%)`;
+      const bot = `hsl(${v.h.toFixed(0)} ${Math.max(28,v.s-8).toFixed(0)}% ${Math.max(12,v.l-26).toFixed(0)}%)`;
+      return `linear-gradient(165deg, ${top} 0%, ${bot} 100%)`;
+    }
+
+    const DEFAULT = {
+      profile: {
+        name: 'Yasha Vozhakin',
+        title: 'Founder & Creator',
+        photo: '/profile.jpg',
+        type: '',
+        about: [
+          { title: '', body: 'Ideas first. I design systems that feel — tactile, visual, emotional. From tech to retail. I build experiences where clarity meets imagination.' },
+          { title: 'Что делаю', body: 'Шесть проектов под зонтом Vozhakin Group — от бренда одежды до планировщика для команд. Каждый — про опыт, не про категорию.' },
+          { title: 'Связаться', body: 'Telegram — самый быстрый канал. Пишите, если у идеи есть искра.' }
+        ]
+      },
+      projects: [
+        { id: 'tsoh',      name: 'TSOH',      description: 'Two Souls One Heart',              long_description: 'Объединяем две души в одно сердце.',         logo: '/TSOH_LOGO.png', url: '', accent: '#b48a5b' },
+        { id: 'cineshift', name: 'CineShift', description: 'За кадром твоего успеха',          long_description: 'Производственная компания.',                  logo: '/CineShift.png', url: '', accent: '#7a5cc9' },
+        { id: 'prodproc',  name: 'ProdProc',  description: 'Система. Документы. Результат',   long_description: 'Автоматизация продюсерских процессов.',       logo: '/ProdProc.png',  url: '', accent: '#3b82f6' },
+        { id: 'kenostyle', name: 'KenoStyle', description: 'Одежда для своих, от своих',      long_description: 'Капсульная одежда от команды.',               logo: '/keno.png',      url: '', accent: '#e76f51' },
+        { id: 'kenomedia', name: 'KenoMedia', description: 'Магия кино в трансляции',         long_description: 'Графика и пост-продакшн для прямых эфиров.',  logo: '/MEDIA.png',     url: '', accent: '#0ea5e9' },
+        { id: 'plansync',  name: 'PlanSync',  description: 'Ваши планы — в идеальном ритме',  long_description: 'Планировщик для команд.',                     logo: '/PlanSync.png',  url: '', accent: '#22c55e' }
+      ],
+      contacts: [ { id: 'telegram', label: 'Telegram', url: 'https://t.me/Yasha_Vozhakin', icon: 'telegram' } ],
+      footer: { brand: 'Vozhakin Group', logo: '/vzh.png', year: 2025 }
+    };
+
+    let state = loadState();
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (e) {}
+      return structuredClone(DEFAULT);
+    }
+    function saveState() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+      renderAll();
+    }
+
+    function uid(prefix='id') {
+      return prefix + '_' + Math.random().toString(36).slice(2, 9);
+    }
+
+    function toast(text) {
+      const el = document.getElementById('toast');
+      el.textContent = text;
+      el.classList.add('show');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => el.classList.remove('show'), 1800);
+    }
+
+    /* ----- Render: profile / footer ----- */
+    function renderProfile() {
+      document.getElementById('p-name').value = state.profile.name || '';
+      document.getElementById('p-title').value = state.profile.title || '';
+      document.getElementById('p-photo').value = state.profile.photo || '';
+      document.getElementById('p-type').value = state.profile.type || '';
+    }
+    function renderProfileAbout() {
+      if (!Array.isArray(state.profile.about)) state.profile.about = [];
+      const list = document.getElementById('profile-about-list');
+      list.innerHTML = '';
+      state.profile.about.forEach((s, i) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid; grid-template-columns: 1fr auto; gap:6px; padding:8px; background: var(--bg); border: 0.5px solid var(--border); border-radius: 10px;';
+        row.innerHTML = `
+          <input type="text" placeholder="Заголовок (пусто = манифест без шапки)" value="${escapeAttr(s.title || '')}" data-pa-title="${i}" />
+          <button type="button" class="danger" data-pa-del="${i}" style="padding: 6px 10px; font-size: 12px; align-self: start;">×</button>
+          <textarea rows="3" placeholder="Текст секции" data-pa-body="${i}" style="grid-column: 1 / -1;">${escapeHtml(s.body || '')}</textarea>
+        `;
+        list.appendChild(row);
+      });
+      list.querySelectorAll('[data-pa-title]').forEach(el => el.addEventListener('input', e => {
+        state.profile.about[+el.dataset.paTitle].title = e.target.value;
+        saveState();
+      }));
+      list.querySelectorAll('[data-pa-body]').forEach(el => el.addEventListener('input', e => {
+        state.profile.about[+el.dataset.paBody].body = e.target.value;
+        saveState();
+      }));
+      list.querySelectorAll('[data-pa-del]').forEach(el => el.addEventListener('click', () => {
+        state.profile.about.splice(+el.dataset.paDel, 1);
+        saveState();
+        toast('Секция удалена');
+      }));
+    }
+    function renderFooter() {
+      document.getElementById('f-brand').value = state.footer.brand || '';
+      document.getElementById('f-logo').value = state.footer.logo || '';
+      document.getElementById('f-year').value = state.footer.year || '';
+    }
+    ['p-name','p-title','p-photo','p-type'].forEach(id => {
+      document.getElementById(id).addEventListener('input', e => {
+        const key = id.replace('p-','');
+        state.profile[key] = e.target.value;
+        saveState();
+      });
+    });
+    document.getElementById('add-profile-about').addEventListener('click', () => {
+      if (!Array.isArray(state.profile.about)) state.profile.about = [];
+      state.profile.about.push({ title: '', body: '' });
+      saveState();
+      toast('Секция добавлена');
+    });
+    ['f-brand','f-logo','f-year'].forEach(id => {
+      document.getElementById(id).addEventListener('input', e => {
+        const key = id.replace('f-','');
+        state.footer[key] = e.target.value;
+        saveState();
+      });
+    });
+
+    /* ----- Render: projects (active + archived) ----- */
+    function renderProjects() {
+      const activeList   = document.getElementById('projects-list');
+      const archivedList = document.getElementById('archived-list');
+      const archivedWrap = document.getElementById('archived-wrap');
+      const archivedCt   = document.getElementById('archived-count');
+      activeList.innerHTML = '';
+      archivedList.innerHTML = '';
+
+      let archivedN = 0;
+      state.projects.forEach((p, idx) => {
+        const isHidden = !!p.hidden;
+        const row = document.createElement('div');
+        row.className = 'project-row' + (isHidden ? ' archived' : '');
+        row.draggable = true;
+        row.dataset.idx = idx;
+        const variantSuffix = p.variant ? ` · ${escapeHtml(p.variant)}` : '';
+        const archivedBadge = isHidden ? `<span class="arch-badge">скрыто</span>` : '';
+        row.innerHTML = `
+          <span class="handle" title="Перетащить">⋮⋮</span>
+          <div class="logo-prev" style="background: ${p.accent || '#444'}; display:flex; align-items:center; justify-content:center; padding: 0;">
+            ${p.logo ? `<img src="${p.logo}" alt="" style="width:100%;height:100%;object-fit:contain;padding:4px;" onerror="this.style.display='none'" />` : `<span style="color:#fff; font-weight:600; font-size:14px;">${escapeHtml((p.name||'?').slice(0,1))}</span>`}
+          </div>
+          <div class="meta">
+            <div class="name">${escapeHtml(p.name || '(без названия)')}${variantSuffix}${archivedBadge}</div>
+            <div class="desc">${escapeHtml(p.description || '')}</div>
+            <div class="url">${escapeHtml(p.url || '— без ссылки —')}</div>
+          </div>
+          <div class="row-actions">
+            <button data-edit="${idx}">Редактировать</button>
+            <button data-toggle="${idx}">${isHidden ? 'Восстановить' : 'Скрыть'}</button>
+            <button class="danger" data-del="${idx}">Удалить</button>
+          </div>
+        `;
+        wireDrag(row, 'projects');
+        if (isHidden) { archivedList.appendChild(row); archivedN++; }
+        else          { activeList.appendChild(row); }
+      });
+
+      archivedWrap.style.display = archivedN > 0 ? 'block' : 'none';
+      archivedCt.textContent = archivedN ? `(${archivedN})` : '';
+
+      // Single delegated listeners catch buttons from both lists
+      document.querySelectorAll('#projects-list [data-edit], #archived-list [data-edit]')
+        .forEach(b => b.addEventListener('click', () => openProjectModal(+b.dataset.edit)));
+      document.querySelectorAll('#projects-list [data-toggle], #archived-list [data-toggle]')
+        .forEach(b => b.addEventListener('click', () => {
+          const i = +b.dataset.toggle;
+          state.projects[i].hidden = !state.projects[i].hidden;
+          saveState();
+          toast(state.projects[i].hidden ? 'В архив' : 'Восстановлено');
+        }));
+      document.querySelectorAll('#projects-list [data-del], #archived-list [data-del]')
+        .forEach(b => b.addEventListener('click', () => {
+          const i = +b.dataset.del;
+          if (confirm(`Удалить «${state.projects[i].name}» полностью?`)) {
+            state.projects.splice(i, 1);
+            saveState();
+            toast('Удалено');
+          }
+        }));
+    }
+
+    document.getElementById('add-project').addEventListener('click', () => openProjectModal(-1));
+
+    function openProjectModal(idx) {
+      const p = idx === -1
+        ? { id: uid('p'), name: '', type: '', variant: '', group: '', description: '', logo: '', url: '', accent: '#b48a5b', background: '',
+            sections: [{ title: 'О проекте', body: '' }, { title: 'Идея', body: '' }, { title: 'Монетизация', body: '' }],
+            links: [],
+            directions: [],
+            cta: { label: 'Перейти', url: '' },
+            hidden: false }
+        : structuredClone(state.projects[idx]);
+
+      // Migration: convert legacy long_description into a section if sections missing
+      if (!Array.isArray(p.sections)) {
+        p.sections = p.long_description
+          ? [{ title: 'О проекте', body: p.long_description }]
+          : [{ title: 'О проекте', body: '' }];
+      }
+      if (!Array.isArray(p.links)) p.links = [];
+      if (!Array.isArray(p.directions)) p.directions = [];
+      if (!p.cta || typeof p.cta !== 'object') p.cta = { label: 'Перейти', url: '' };
+      const isNew = idx === -1;
+      const m = document.getElementById('modal');
+      document.getElementById('modal-title').textContent = isNew ? 'Новый проект' : 'Редактировать проект';
+
+      function detectBgMode(v) {
+        const s = (v || '').trim();
+        if (!s) return 'auto';
+        if (s === 'glass') return 'glass';
+        if (/^linear-gradient\(/i.test(s)) return 'gradient';
+        if (/^(#|rgb\(|hsl\()/i.test(s)) return 'color';
+        return 'image';
+      }
+      function hexToRgbA(hex, a) {
+        let h = String(hex || '').replace('#','');
+        if (h.length === 3) h = h.split('').map(c=>c+c).join('');
+        if (!/^[0-9a-fA-F]{6}$/.test(h)) h = '888888';
+        const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+        return `rgba(${r},${g},${b},${a})`;
+      }
+      function glassPreview(accent) {
+        const c55 = hexToRgbA(accent, 0.55);
+        const c10 = hexToRgbA(accent, 0.10);
+        return `radial-gradient(circle at 78% 18%, ${c55} 0%, ${c10} 28%, transparent 55%), rgba(20,20,24,0.92)`;
+      }
+      function parseStoredGradient(v) {
+        // linear-gradient(165deg, #color 0%, #color 100%)
+        const m = (v || '').match(/linear-gradient\(\s*(-?\d+)deg\s*,\s*([^,]+?)(?:\s+\d+%)?\s*,\s*([^,)]+?)(?:\s+\d+%)?\s*\)/i);
+        if (m) return { angle: parseInt(m[1], 10), top: m[2].trim(), bot: m[3].trim() };
+        return null;
+      }
+      function buildGradient(angle, top, bot) {
+        return `linear-gradient(${angle}deg, ${top} 0%, ${bot} 100%)`;
+      }
+      function bgPreviewStyle(bgValue) {
+        const s = (bgValue || '').trim();
+        if (!s) return `background: ${gradientForPreview(p.accent || '#b48a5b')}`;
+        if (s === 'glass') return `background: ${glassPreview(p.accent || '#b48a5b')}`;
+        if (/^linear-gradient\(|^radial-gradient\(|^conic-gradient\(/i.test(s)) return `background: ${s}`;
+        if (/^(#|rgb\(|hsl\()/i.test(s)) return `background: ${s}`;
+        return `background-image: url("${s.replace(/"/g,'\\"')}"); background-size: cover; background-position: center;`;
+      }
+
+      document.getElementById('modal-body').innerHTML = `
+        <div class="grid-2">
+          <div>
+            <label>Название</label>
+            <input id="m-name" type="text" value="${escapeAttr(p.name)}" />
+          </div>
+          <div>
+            <label>Тип (мелкая подпись над слоганом)</label>
+            <input id="m-type" type="text" value="${escapeAttr(p.type || '')}" placeholder="Бренд / Сервис / Софт..." />
+          </div>
+          <div>
+            <label>Вариант (подпись после имени)</label>
+            <input id="m-variant" type="text" value="${escapeAttr(p.variant || '')}" placeholder="для физлиц / Web / iOS..." />
+            <p class="hint">Маленькая подпись типа «CineShift · для физлиц». Используется для сестринских карточек.</p>
+          </div>
+          <div>
+            <label>Группа сестёр (ID)</label>
+            <input id="m-group" type="text" value="${escapeAttr(p.group || '')}" placeholder="cineshift / kenoapp..." />
+            <p class="hint">Свяжите две (и больше) карточки одним ID группы — они склеются в стопке и при тапе откроются вместе в карусели. Оставьте пустым, если карта одиночная.</p>
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <label>Слоган (внизу карты)</label>
+            <textarea id="m-desc" rows="2" placeholder="Например: «За кадром твоего успеха»">${escapeHtml(p.description)}</textarea>
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <label>Секции оборота карты</label>
+            <div id="sections-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom:6px;"></div>
+            <button type="button" id="add-section" class="ghost" style="padding:6px 12px; font-size:12px;">+ Секция</button>
+            <p class="hint">Каждая секция — заголовок (типа «О проекте», «Идея», «Монетизация») и текст. Можно сколько угодно.</p>
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <label>Направления внутри проекта</label>
+            <div id="directions-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom:6px;"></div>
+            <button type="button" id="add-direction" class="ghost" style="padding:6px 12px; font-size:12px;">+ Направление</button>
+            <p class="hint">Используйте если у проекта несколько суб-направлений (например TSOH: одежда + парфюм). Каждое направление — отдельная плашка на обороте карточки. URL опционален.</p>
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <label>Ссылки-пилюли (над кнопкой)</label>
+            <div id="links-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom:6px;"></div>
+            <button type="button" id="add-link" class="ghost" style="padding:6px 12px; font-size:12px;">+ Ссылка</button>
+            <p class="hint">Маленькие пилюли с иконками: сайт, IG, TG, почта и т.п. Иконки: <code>telegram</code>, <code>email</code>, <code>whatsapp</code>, <code>linkedin</code>, <code>instagram</code>, <code>youtube</code>, <code>link</code> (общий значок ссылки).</p>
+          </div>
+          <div>
+            <label>Текст кнопки</label>
+            <input id="m-cta-label" type="text" value="${escapeAttr(p.cta.label || '')}" placeholder="Перейти / Купить / Открыть..." />
+          </div>
+          <div>
+            <label>URL кнопки</label>
+            <input id="m-cta-url" type="url" value="${escapeAttr(p.cta.url || '')}" placeholder="https://... (можно оставить пустым)" />
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <label>Внешний вид карты</label>
+            <div class="bg-modes" id="m-bg-modes">
+              <button type="button" class="bg-mode-btn" data-bg-mode="auto">Авто</button>
+              <button type="button" class="bg-mode-btn" data-bg-mode="image">Фото</button>
+              <button type="button" class="bg-mode-btn" data-bg-mode="color">Цвет</button>
+              <button type="button" class="bg-mode-btn" data-bg-mode="gradient">Градиент</button>
+              <button type="button" class="bg-mode-btn" data-bg-mode="glass">Стекло</button>
+            </div>
+            <div id="bg-preview" style="height: 110px; border-radius: 10px; border: 0.5px solid var(--border); margin-bottom: 10px; ${bgPreviewStyle(p.background)}"></div>
+
+            <div class="bg-pane" data-bg-pane="auto">
+              <p class="hint">Карта получит мягкий градиент из акцентного цвета ниже. Самый простой и согласованный с остальной стопкой вариант.</p>
+            </div>
+
+            <div class="bg-pane" data-bg-pane="image" hidden>
+              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <label class="btn ghost" for="m-bg-file" style="padding: 8px 12px; font-size: 13px;">Загрузить с компьютера</label>
+                <input id="m-bg-file" type="file" accept="image/*" hidden />
+                <input id="m-bg-url" type="text" placeholder="…или вставьте URL картинки" style="flex: 1; min-width: 200px;" />
+                <button type="button" id="m-bg-clear" class="ghost" style="padding: 8px 10px; font-size: 12px;">Очистить</button>
+              </div>
+              <p class="hint">Файл больше 2 МБ заметно увеличит размер cards.json.</p>
+            </div>
+
+            <div class="bg-pane" data-bg-pane="color" hidden>
+              <input id="m-bg-color" type="color" value="#3b82f6" style="width: 80px;" />
+              <p class="hint">Заливка одним цветом — без градиента и блика-полировки.</p>
+            </div>
+
+            <div class="bg-pane" data-bg-pane="gradient" hidden>
+              <div class="bg-grid">
+                <div>
+                  <label>Верх</label>
+                  <input id="m-grad-top" type="color" value="#5fa3f7" />
+                </div>
+                <div>
+                  <label>Низ</label>
+                  <input id="m-grad-bot" type="color" value="#1e5fb0" />
+                </div>
+              </div>
+              <div class="angle-row">
+                <label style="margin-bottom: 0;">Угол: <span id="m-grad-angle-val">165</span>°</label>
+                <input id="m-grad-angle" type="range" min="0" max="360" value="165" />
+              </div>
+              <p class="hint">Свой градиент из двух точек. Угол: 0° — снизу-вверх, 90° — слева-направо, 180° — сверху-вниз.</p>
+            </div>
+
+            <div class="bg-pane" data-bg-pane="glass" hidden>
+              <p class="hint">Тёмная стеклянная карточка с цветной подсветкой в углу — как hero-карточка iOS Dashboard. Цвет «лужицы света» берётся из <b>акцентного цвета</b> ниже. На фоне просвечивают звёзды (через backdrop-blur). Меняйте акцент чтобы менять тон подсветки.</p>
+            </div>
+          </div>
+          <div>
+            <label>URL логотипа</label>
+            <input id="m-logo" type="text" value="${escapeAttr(p.logo)}" placeholder="/logo.png" />
+          </div>
+          <div>
+            <label>Ссылка проекта</label>
+            <input id="m-url" type="url" value="${escapeAttr(p.url)}" placeholder="https://..." />
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <label>Акцент (запасной цвет, если фон не задан)</label>
+            <input id="m-accent" type="color" value="${p.accent || '#b48a5b'}" />
+          </div>
+        </div>
+      `;
+      m.classList.add('open');
+
+      // ----- Background mode editor -----
+      const bgPreview   = document.getElementById('bg-preview');
+      const bgButtons   = document.querySelectorAll('[data-bg-mode]');
+      const bgPanes     = document.querySelectorAll('[data-bg-pane]');
+      const bgFile      = document.getElementById('m-bg-file');
+      const bgUrlInput  = document.getElementById('m-bg-url');
+      const bgColorIn   = document.getElementById('m-bg-color');
+      const gradTop     = document.getElementById('m-grad-top');
+      const gradBot     = document.getElementById('m-grad-bot');
+      const gradAngle   = document.getElementById('m-grad-angle');
+      const gradAngleVal= document.getElementById('m-grad-angle-val');
+
+      // Populate inputs from existing p.background, by detected mode
+      let curBgMode = detectBgMode(p.background);
+      if (curBgMode === 'image') {
+        bgUrlInput.value = p.background;
+      } else if (curBgMode === 'color') {
+        bgColorIn.value = /^#[0-9a-fA-F]{6}$/.test(p.background) ? p.background : '#3b82f6';
+      } else if (curBgMode === 'gradient') {
+        const parsed = parseStoredGradient(p.background);
+        if (parsed) {
+          gradAngle.value = parsed.angle;
+          gradAngleVal.textContent = parsed.angle;
+          if (/^#[0-9a-fA-F]{6}$/.test(parsed.top)) gradTop.value = parsed.top;
+          if (/^#[0-9a-fA-F]{6}$/.test(parsed.bot)) gradBot.value = parsed.bot;
+        }
+      }
+
+      function refreshBgPreview() {
+        bgPreview.style.cssText = `height: 110px; border-radius: 10px; border: 0.5px solid var(--border); margin-bottom: 10px; ` + bgPreviewStyle(p.background);
+      }
+      function syncBgFromMode() {
+        if (curBgMode === 'auto')       p.background = '';
+        else if (curBgMode === 'image') p.background = bgUrlInput.value.trim();
+        else if (curBgMode === 'color') p.background = bgColorIn.value;
+        else if (curBgMode === 'gradient') p.background = buildGradient(gradAngle.value, gradTop.value, gradBot.value);
+        else if (curBgMode === 'glass') p.background = 'glass';
+        refreshBgPreview();
+      }
+      function setBgMode(mode) {
+        curBgMode = mode;
+        bgButtons.forEach(b => b.classList.toggle('active', b.dataset.bgMode === mode));
+        bgPanes.forEach(pane => pane.hidden = (pane.dataset.bgPane !== mode));
+        syncBgFromMode();
+      }
+
+      setBgMode(curBgMode);
+
+      bgButtons.forEach(b => b.addEventListener('click', () => setBgMode(b.dataset.bgMode)));
+
+      bgUrlInput.addEventListener('input', () => { if (curBgMode === 'image') syncBgFromMode(); });
+      bgFile.addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) {
+          if (!confirm('Файл больше 2 МБ — он раздует cards.json. Продолжить?')) {
+            e.target.value = ''; return;
+          }
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          bgUrlInput.value = reader.result;
+          if (curBgMode !== 'image') setBgMode('image');
+          else syncBgFromMode();
+        };
+        reader.readAsDataURL(file);
+      });
+      document.getElementById('m-bg-clear').addEventListener('click', () => {
+        bgUrlInput.value = '';
+        syncBgFromMode();
+      });
+
+      bgColorIn.addEventListener('input', () => { if (curBgMode === 'color') syncBgFromMode(); });
+      gradTop.addEventListener('input', () => { if (curBgMode === 'gradient') syncBgFromMode(); });
+      gradBot.addEventListener('input', () => { if (curBgMode === 'gradient') syncBgFromMode(); });
+      gradAngle.addEventListener('input', () => {
+        gradAngleVal.textContent = gradAngle.value;
+        if (curBgMode === 'gradient') syncBgFromMode();
+      });
+
+      // Accent picker — both Auto-gradient and Glass-spotlight use it as
+      // a colour source, so refresh the preview whenever it changes.
+      document.getElementById('m-accent').addEventListener('input', e => {
+        p.accent = e.target.value;
+        if (curBgMode === 'auto' || curBgMode === 'glass') refreshBgPreview();
+      });
+
+      // ----- Sections editor -----
+      const sectionsList = document.getElementById('sections-list');
+      function renderSections() {
+        sectionsList.innerHTML = '';
+        p.sections.forEach((s, i) => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:grid; grid-template-columns: 1fr auto; gap:6px; padding:8px; background: var(--bg); border: 0.5px solid var(--border); border-radius: 10px;';
+          row.innerHTML = `
+            <input type="text" placeholder="Заголовок (например, «О проекте»)" value="${escapeAttr(s.title || '')}" data-s-title="${i}" />
+            <button type="button" class="danger" data-s-del="${i}" style="padding: 6px 10px; font-size: 12px; align-self: start;">×</button>
+            <textarea rows="2" placeholder="Текст секции" data-s-body="${i}" style="grid-column: 1 / -1;">${escapeHtml(s.body || '')}</textarea>
+          `;
+          sectionsList.appendChild(row);
+        });
+        sectionsList.querySelectorAll('[data-s-title]').forEach(el => {
+          el.addEventListener('input', e => { p.sections[+el.dataset.sTitle].title = e.target.value; });
+        });
+        sectionsList.querySelectorAll('[data-s-body]').forEach(el => {
+          el.addEventListener('input', e => { p.sections[+el.dataset.sBody].body = e.target.value; });
+        });
+        sectionsList.querySelectorAll('[data-s-del]').forEach(el => {
+          el.addEventListener('click', () => {
+            p.sections.splice(+el.dataset.sDel, 1);
+            renderSections();
+          });
+        });
+      }
+      document.getElementById('add-section').addEventListener('click', () => {
+        p.sections.push({ title: '', body: '' });
+        renderSections();
+      });
+      renderSections();
+
+      // ----- Links editor -----
+      const linksList = document.getElementById('links-list');
+      function renderLinks() {
+        linksList.innerHTML = '';
+        p.links.forEach((l, i) => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:grid; grid-template-columns: 110px 90px 1fr auto; gap:6px; align-items:center; padding:8px; background: var(--bg); border: 0.5px solid var(--border); border-radius: 10px;';
+          row.innerHTML = `
+            <input type="text" placeholder="Подпись" value="${escapeAttr(l.label || '')}" data-l-label="${i}" />
+            <input type="text" placeholder="Иконка" value="${escapeAttr(l.icon || 'link')}" data-l-icon="${i}" />
+            <input type="url" placeholder="URL" value="${escapeAttr(l.url || '')}" data-l-url="${i}" />
+            <button type="button" class="danger" data-l-del="${i}" style="padding: 6px 10px; font-size: 12px;">×</button>
+          `;
+          linksList.appendChild(row);
+        });
+        linksList.querySelectorAll('[data-l-label]').forEach(el => el.addEventListener('input', e => { p.links[+el.dataset.lLabel].label = e.target.value; }));
+        linksList.querySelectorAll('[data-l-icon]').forEach(el => el.addEventListener('input', e => { p.links[+el.dataset.lIcon].icon = e.target.value; }));
+        linksList.querySelectorAll('[data-l-url]').forEach(el => el.addEventListener('input', e => { p.links[+el.dataset.lUrl].url = e.target.value; }));
+        linksList.querySelectorAll('[data-l-del]').forEach(el => el.addEventListener('click', () => {
+          p.links.splice(+el.dataset.lDel, 1);
+          renderLinks();
+        }));
+      }
+      document.getElementById('add-link').addEventListener('click', () => {
+        p.links.push({ label: '', url: '', icon: 'link' });
+        renderLinks();
+      });
+      renderLinks();
+
+      // ----- Directions editor (sub-projects inside one project) -----
+      const directionsList = document.getElementById('directions-list');
+      function renderDirections() {
+        directionsList.innerHTML = '';
+        p.directions.forEach((d, i) => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:grid; grid-template-columns: 1fr 1fr auto; gap:6px; padding:8px; background: var(--bg); border: 0.5px solid var(--border); border-radius: 10px;';
+          row.innerHTML = `
+            <input type="text" placeholder="Название (Одежда, Парфюм...)" value="${escapeAttr(d.title || '')}" data-dir-title="${i}" />
+            <input type="url" placeholder="URL (необязательно)" value="${escapeAttr(d.url || '')}" data-dir-url="${i}" />
+            <button type="button" class="danger" data-dir-del="${i}" style="padding: 6px 10px; font-size: 12px; align-self: start;">×</button>
+            <textarea rows="2" placeholder="Краткое описание" data-dir-body="${i}" style="grid-column: 1 / -1;">${escapeHtml(d.body || '')}</textarea>
+          `;
+          directionsList.appendChild(row);
+        });
+        directionsList.querySelectorAll('[data-dir-title]').forEach(el => el.addEventListener('input', e => { p.directions[+el.dataset.dirTitle].title = e.target.value; }));
+        directionsList.querySelectorAll('[data-dir-url]').forEach(el => el.addEventListener('input', e => { p.directions[+el.dataset.dirUrl].url = e.target.value; }));
+        directionsList.querySelectorAll('[data-dir-body]').forEach(el => el.addEventListener('input', e => { p.directions[+el.dataset.dirBody].body = e.target.value; }));
+        directionsList.querySelectorAll('[data-dir-del]').forEach(el => el.addEventListener('click', () => {
+          p.directions.splice(+el.dataset.dirDel, 1);
+          renderDirections();
+        }));
+      }
+      document.getElementById('add-direction').addEventListener('click', () => {
+        p.directions.push({ title: '', body: '', url: '' });
+        renderDirections();
+      });
+      renderDirections();
+
+      document.getElementById('modal-save').onclick = () => {
+        p.name = document.getElementById('m-name').value.trim();
+        p.type = document.getElementById('m-type').value.trim();
+        p.variant = document.getElementById('m-variant').value.trim();
+        p.group = document.getElementById('m-group').value.trim();
+        p.description = document.getElementById('m-desc').value.trim();
+        p.logo = document.getElementById('m-logo').value.trim();
+        p.url = document.getElementById('m-url').value.trim();
+        p.accent = document.getElementById('m-accent').value;
+        // p.background is already kept in sync by the background-mode editor.
+        // If the user switched to "Auto" or cleared the image URL, it'll be ''.
+        p.cta = {
+          label: document.getElementById('m-cta-label').value.trim(),
+          url: document.getElementById('m-cta-url').value.trim()
+        };
+        // Drop fully empty sections so JSON stays clean
+        p.sections = p.sections.filter(s => (s.title && s.title.trim()) || (s.body && s.body.trim()));
+        // Drop empty links
+        p.links = p.links.filter(l => l.url && l.url.trim());
+        // Drop fully empty directions
+        p.directions = p.directions.filter(d => (d.title && d.title.trim()) || (d.body && d.body.trim()) || (d.url && d.url.trim()));
+        // Remove deprecated long_description if present
+        delete p.long_description;
+        if (!p.name) { alert('Название обязательно'); return; }
+        if (isNew) state.projects.push(p);
+        else state.projects[idx] = p;
+        m.classList.remove('open');
+        saveState();
+        toast(isNew ? 'Добавлено' : 'Сохранено');
+      };
+    }
+
+    /* ----- Render: contacts ----- */
+    function renderContacts() {
+      const list = document.getElementById('contacts-list');
+      list.innerHTML = '';
+      state.contacts.forEach((c, idx) => {
+        const row = document.createElement('div');
+        row.className = 'project-row';
+        row.draggable = true;
+        row.dataset.idx = idx;
+        row.innerHTML = `
+          <span class="handle" title="Перетащить">⋮⋮</span>
+          <div class="logo-prev" style="display:flex; align-items:center; justify-content:center; font-size:11px; color: var(--muted);">${escapeHtml(c.icon || 'link')}</div>
+          <div class="meta">
+            <div class="name">${escapeHtml(c.label || '(без названия)')}</div>
+            <div class="url">${escapeHtml(c.url || '')}</div>
+          </div>
+          <div class="row-actions">
+            <button data-edit="${idx}">Редактировать</button>
+            <button class="danger" data-del="${idx}">Удалить</button>
+          </div>
+        `;
+        wireDrag(row, 'contacts');
+        list.appendChild(row);
+      });
+      list.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openContactModal(+b.dataset.edit)));
+      list.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => {
+        const i = +b.dataset.del;
+        if (confirm(`Удалить «${state.contacts[i].label}»?`)) {
+          state.contacts.splice(i, 1);
+          saveState();
+          toast('Удалено');
+        }
+      }));
+    }
+
+    document.getElementById('add-contact').addEventListener('click', () => openContactModal(-1));
+
+    function openContactModal(idx) {
+      const c = idx === -1
+        ? { id: uid('c'), label: '', url: '', icon: 'link' }
+        : structuredClone(state.contacts[idx]);
+      const isNew = idx === -1;
+      const m = document.getElementById('modal');
+      document.getElementById('modal-title').textContent = isNew ? 'Новый контакт' : 'Редактировать контакт';
+      document.getElementById('modal-body').innerHTML = `
+        <div class="grid-2">
+          <div>
+            <label>Подпись</label>
+            <input id="m-label" type="text" value="${escapeAttr(c.label)}" />
+          </div>
+          <div>
+            <label>Иконка</label>
+            <input id="m-icon" type="text" value="${escapeAttr(c.icon)}" placeholder="telegram, email, whatsapp..." />
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <label>URL</label>
+            <input id="m-url" type="url" value="${escapeAttr(c.url)}" />
+          </div>
+        </div>
+      `;
+      m.classList.add('open');
+      document.getElementById('modal-save').onclick = () => {
+        c.label = document.getElementById('m-label').value.trim();
+        c.icon = document.getElementById('m-icon').value.trim() || 'link';
+        c.url = document.getElementById('m-url').value.trim();
+        if (!c.label || !c.url) { alert('Подпись и URL обязательны'); return; }
+        if (isNew) state.contacts.push(c);
+        else state.contacts[idx] = c;
+        m.classList.remove('open');
+        saveState();
+        toast(isNew ? 'Добавлено' : 'Сохранено');
+      };
+    }
+
+    /* ----- Modal helpers ----- */
+    document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => {
+      document.getElementById('modal').classList.remove('open');
+    }));
+    document.getElementById('modal').addEventListener('click', e => {
+      if (e.target.id === 'modal') document.getElementById('modal').classList.remove('open');
+    });
+
+    /* ----- Drag & drop reordering ----- */
+    let dragSrc = null;
+    let dragKind = null;
+    function wireDrag(row, kind) {
+      row.addEventListener('dragstart', e => {
+        dragSrc = +row.dataset.idx;
+        dragKind = kind;
+        row.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      row.addEventListener('dragend', () => {
+        row.classList.remove('dragging');
+        document.querySelectorAll('.project-row').forEach(r => r.classList.remove('drag-over'));
+      });
+      row.addEventListener('dragover', e => {
+        if (dragKind !== kind) return;
+        e.preventDefault();
+        row.classList.add('drag-over');
+      });
+      row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+      row.addEventListener('drop', e => {
+        e.preventDefault();
+        row.classList.remove('drag-over');
+        if (dragKind !== kind || dragSrc == null) return;
+        const target = +row.dataset.idx;
+        if (target === dragSrc) return;
+        const arr = state[kind];
+        const [item] = arr.splice(dragSrc, 1);
+        arr.splice(target, 0, item);
+        dragSrc = null;
+        saveState();
+      });
+    }
+
+    /* ----- Import / Export ----- */
+    document.getElementById('download-btn').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'cards.json';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 500);
+      toast('Файл скачан');
+    });
+
+    document.getElementById('import-file').addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (!data.profile || !Array.isArray(data.projects)) throw new Error('Неверная структура');
+        state = data;
+        saveState();
+        toast('Импортировано');
+      } catch (err) {
+        alert('Не удалось импортировать: ' + err.message);
+      } finally {
+        e.target.value = '';
+      }
+    });
+
+    /* ----- Helpers ----- */
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function escapeAttr(s) { return escapeHtml(s); }
+
+    function renderJsonPreview() {
+      document.getElementById('json-preview').textContent = JSON.stringify(state, null, 2);
+    }
+
+    function renderAll() {
+      renderProfile();
+      renderProfileAbout();
+      renderProjects();
+      renderContacts();
+      renderFooter();
+      renderJsonPreview();
+    }
+
+    renderAll();
+  </script>
+</body>
+</html>
