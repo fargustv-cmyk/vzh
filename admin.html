@@ -1169,23 +1169,22 @@
       toast('Файл скачан');
     });
 
-    /* ----- Save to GitHub (опубликовать на сайт) ----- */
-    const GH_REPO_OWNER = 'fargustv-cmyk';
-    const GH_REPO_NAME  = 'vzh';
-    const GH_FILE_PATH  = 'cards.json';
-    const GH_TOKEN_KEY  = 'vzh_admin_gh_token_v1';
+    /* ----- Save to live site через /api/save-cards (Vercel Function) -----
+       Безопаснее токена: GitHub PAT хранится на сервере в Vercel env vars
+       (GITHUB_TOKEN), а пользователь админки знает только пароль (ADMIN_PASSWORD).
+       Эндпоинт коммитит cards.json в репо, Vercel пересобирает сайт. */
+    const ADMIN_PW_KEY = 'vzh_admin_pw_v1';
 
-    async function saveToGitHub() {
-      let token = localStorage.getItem(GH_TOKEN_KEY);
-      if (!token) {
-        token = prompt(
-          'GitHub Personal Access Token\n\n' +
-          'Нужен токен с правами Contents: Read+Write на репо ' + GH_REPO_OWNER + '/' + GH_REPO_NAME + '.\n' +
-          'Создай на https://github.com/settings/personal-access-tokens и вставь сюда. ' +
-          'Сохранится только в этом браузере (localStorage).'
+    async function saveViaBackend() {
+      let pw = localStorage.getItem(ADMIN_PW_KEY);
+      if (!pw) {
+        pw = prompt(
+          'Пароль админки\n\n' +
+          'Спроси у владельца сайта. Сохранится только в этом браузере, ' +
+          'токены GitHub не нужны и не запоминаются в браузере.'
         );
-        if (!token) return;
-        localStorage.setItem(GH_TOKEN_KEY, token.trim());
+        if (!pw) return;
+        localStorage.setItem(ADMIN_PW_KEY, pw.trim());
       }
       const btn = document.getElementById('github-save-btn');
       const origLabel = btn.textContent;
@@ -1193,55 +1192,31 @@
       btn.textContent = 'Сохраняю...';
 
       try {
-        const url = `https://api.github.com/repos/${GH_REPO_OWNER}/${GH_REPO_NAME}/contents/${GH_FILE_PATH}`;
-        const headers = {
-          'Authorization': 'Bearer ' + token,
-          'Accept': 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2022-11-28'
-        };
-
-        // 1. Получаем текущий SHA файла
-        const getRes = await fetch(url, { headers });
-        if (!getRes.ok) {
-          const txt = await getRes.text();
-          throw new Error('GET cards.json: ' + getRes.status + ' ' + txt.slice(0, 200));
-        }
-        const meta = await getRes.json();
-        const sha = meta.sha;
-
-        // 2. Кодируем JSON в base64 (с поддержкой Unicode)
-        const jsonText = JSON.stringify(state, null, 2);
-        const b64 = btoa(unescape(encodeURIComponent(jsonText)));
-
-        // 3. PUT с новым содержимым
-        const putRes = await fetch(url, {
-          method: 'PUT',
-          headers: { ...headers, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: 'admin: update cards.json',
-            content: b64,
-            sha: sha
-          })
+        const res = await fetch('/api/save-cards', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pw, data: state })
         });
-        if (!putRes.ok) {
-          const txt = await putRes.text();
-          throw new Error('PUT: ' + putRes.status + ' ' + txt.slice(0, 200));
+        const out = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error((out && out.error) ? out.error : ('HTTP ' + res.status));
         }
-        const result = await putRes.json();
         btn.textContent = '✓ Сохранено';
-        toast('Сохранено в GitHub. Vercel пересоберёт через ~1 мин. Коммит: ' + result.commit.sha.slice(0, 7));
+        toast('Опубликовано на сайте. Vercel пересоберёт через ~1 мин. Коммит: ' + (out.sha ? out.sha.slice(0, 7) : '—'));
         setTimeout(() => { btn.textContent = origLabel; btn.disabled = false; }, 4000);
       } catch (e) {
         btn.textContent = origLabel;
         btn.disabled = false;
         const msg = String(e.message || e);
-        alert('Ошибка сохранения:\n\n' + msg + '\n\nПроверь токен (Contents: Read+Write). При 401/403 токен будет сброшен — при следующем нажатии запросится заново.');
-        if (msg.includes('401') || msg.includes('403') || msg.includes('Bad credentials')) {
-          localStorage.removeItem(GH_TOKEN_KEY);
+        alert('Ошибка сохранения:\n\n' + msg + '\n\nЕсли «Invalid password» — пароль сброшен, ' +
+              'при следующем нажатии запросится заново. Если «Server not configured» — ' +
+              'настрой Vercel env vars (ADMIN_PASSWORD и GITHUB_TOKEN).');
+        if (msg.toLowerCase().includes('invalid password')) {
+          localStorage.removeItem(ADMIN_PW_KEY);
         }
       }
     }
-    document.getElementById('github-save-btn').addEventListener('click', saveToGitHub);
+    document.getElementById('github-save-btn').addEventListener('click', saveViaBackend);
 
     document.getElementById('import-file').addEventListener('change', async e => {
       const file = e.target.files[0];
