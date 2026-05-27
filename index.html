@@ -2029,9 +2029,16 @@
       function enter() {
         if (active) return;
         active = true;
-        // Лочим скролл и прокручиваем наверх для чистого full-viewport кадра
+        // Запрашиваем настоящий полноэкранный режим — браузерный хром
+        // (URL-бар, вкладки) уходит, остаётся только космос.
+        const el = document.documentElement;
+        const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+        if (req) {
+          try { req.call(el).catch(() => {}); } catch (_) {}
+        }
+        // Лочим скролл — без принудительного scrollTo,
+        // чтобы на мобиле URL-бар не «возвращался».
         document.documentElement.classList.add('cosmic-locked');
-        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
         document.body.classList.add('cosmic-mode');
         // Стартовый залп — 3 метеора каскадом, не перегружая глаз
         for (let k = 0; k < 3; k++) setTimeout(spawnMeteor, k * 220);
@@ -2067,6 +2074,11 @@
         exitTimer = null;
         // Снимаем revealing после полного завершения волны
         // (max delay 620ms + transition 800ms + buffer 200ms)
+        // Выходим из fullscreen, если был активен
+        if (document.fullscreenElement || document.webkitFullscreenElement) {
+          const exitFn = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+          if (exitFn) { try { exitFn.call(document).catch(() => {}); } catch (_) {} }
+        }
         setTimeout(() => {
           document.body.classList.remove('cosmic-revealing');
           document.documentElement.classList.remove('cosmic-locked');
@@ -2078,6 +2090,16 @@
         e.preventDefault();
         active ? exit() : enter();
       });
+
+      // Если пользователь вышел из fullscreen через ESC — синхронизируем
+      // и закрываем cosmic-mode тоже (иначе UI остался бы скрыт).
+      const onFsChange = () => {
+        if (active && !document.fullscreenElement && !document.webkitFullscreenElement) {
+          exit();
+        }
+      };
+      document.addEventListener('fullscreenchange', onFsChange);
+      document.addEventListener('webkitfullscreenchange', onFsChange);
     }
 
     /* ----- Boot ----- */
