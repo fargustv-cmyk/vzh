@@ -964,22 +964,95 @@
       z-index: 100; font-family: inherit;
     }
     body.cosmic-mode .cosmic-hint { opacity: 1; }
+    /* Метеор = тонкая полоса со сквозным градиентом (хвост) + сияющая
+       голова через ::after. Слегка изогнутая траектория за счёт промежуточных
+       keyframe-точек. Базовый цвет холодный голубовато-белый — как от ионизации
+       воздуха при входе в атмосферу. */
     .meteor {
-      position: fixed; top: -10px; width: 2px; height: 90px;
-      background: linear-gradient(to bottom,
-        rgba(255,255,255,0) 0%,
-        rgba(255,255,255,0.85) 80%,
-        rgba(255,255,255,1) 100%);
-      border-radius: 999px; pointer-events: none; opacity: 0;
-      box-shadow: 0 0 8px 1px rgba(255,255,255,0.55);
-      z-index: 1; animation: meteor-streak 1.6s cubic-bezier(.4,.7,.5,1) forwards;
+      position: fixed;
+      pointer-events: none;
+      z-index: 1;
+      width: var(--len, 240px);
+      height: 2px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(173, 216, 255, 0.10) 15%,
+        rgba(190, 220, 255, 0.45) 55%,
+        rgba(230, 240, 255, 0.85) 88%,
+        #ffffff 100%);
+      border-radius: 999px;
+      filter: drop-shadow(0 0 3px rgba(180, 220, 255, 0.70));
+      opacity: 0;
+      transform-origin: 100% 50%;
+      animation: meteor-streak 1.8s cubic-bezier(.32,.72,.2,1) forwards;
       will-change: transform, opacity;
     }
+    .meteor::after {
+      /* Сияющая голова метеора — белое ядро + двойной голубой ореол */
+      content: '';
+      position: absolute;
+      right: -3px;
+      top: -3.5px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: radial-gradient(circle,
+        #ffffff 0%,
+        rgba(220, 235, 255, 0.95) 30%,
+        rgba(160, 200, 255, 0.55) 60%,
+        transparent 90%);
+      box-shadow:
+        0 0 10px 2px rgba(180, 220, 255, 0.85),
+        0 0 22px 6px rgba(120, 180, 255, 0.40),
+        0 0 40px 12px rgba(100, 160, 255, 0.18);
+      filter: blur(0.4px);
+    }
+    .meteor::before {
+      /* Тонкое искрящее жало перед головой — добавляет ощущение скорости */
+      content: '';
+      position: absolute;
+      right: -1px;
+      top: -0.5px;
+      width: 14px;
+      height: 3px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.8) 60%,
+        #ffffff 100%);
+      border-radius: 999px;
+      filter: blur(0.5px);
+    }
+    /* Огненный метеор — реже, ярче, тёплый оттенок (~5% случаев) */
+    .meteor.fireball {
+      width: var(--len, 320px);
+      height: 3px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255, 180, 100, 0.12) 12%,
+        rgba(255, 195, 130, 0.55) 50%,
+        rgba(255, 230, 180, 0.92) 88%,
+        #fff5e0 100%);
+      filter: drop-shadow(0 0 5px rgba(255, 180, 100, 0.70));
+    }
+    .meteor.fireball::after {
+      width: 12px; height: 12px;
+      top: -5px; right: -4px;
+      background: radial-gradient(circle,
+        #fffaee 0%,
+        rgba(255, 220, 160, 0.95) 30%,
+        rgba(255, 170, 80, 0.55) 60%,
+        transparent 90%);
+      box-shadow:
+        0 0 14px 3px rgba(255, 200, 130, 0.85),
+        0 0 30px 8px rgba(255, 150, 60, 0.40),
+        0 0 60px 18px rgba(255, 120, 40, 0.18);
+    }
     @keyframes meteor-streak {
-      0%   { opacity: 0; transform: translate3d(0, 0, 0) rotate(20deg); }
-      10%  { opacity: 1; }
-      90%  { opacity: 1; }
-      100% { opacity: 0; transform: translate3d(60vw, 110vh, 0) rotate(20deg); }
+      0%   { opacity: 0; transform: translate3d(0, 0, 0) rotate(var(--angle, 25deg)) scaleX(0.35); }
+      8%   { opacity: 1; transform: translate3d(0, 0, 0) rotate(var(--angle, 25deg)) scaleX(0.7); }
+      18%  { opacity: 1; transform: translate3d(calc(var(--dx, 90vw) * 0.15), calc(var(--dy, 70vh) * 0.15), 0) rotate(var(--angle, 25deg)) scaleX(1); }
+      88%  { opacity: 1; transform: translate3d(calc(var(--dx, 90vw) * 0.92), calc(var(--dy, 70vh) * 0.92), 0) rotate(var(--angle, 25deg)) scaleX(1.05); }
+      100% { opacity: 0; transform: translate3d(var(--dx, 90vw), var(--dy, 70vh), 0) rotate(var(--angle, 25deg)) scaleX(1.1); }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1812,10 +1885,39 @@
       function spawnMeteor() {
         const m = document.createElement('div');
         m.className = 'meteor';
-        m.style.left = (Math.random() * 70) + 'vw';
-        m.style.top  = (-10 - Math.random() * 80) + 'px';
+        // 5% метеоров — fireball (огненные, крупнее, теплее)
+        const isFireball = Math.random() < 0.05;
+        if (isFireball) m.classList.add('fireball');
+
+        // Стартуем где-то в верхней части экрана с лёгким горизонтальным разбросом.
+        // Лёгкий уход за края — чтобы появлялись «из-за» вьюпорта.
+        const startX = -50 + Math.random() * (window.innerWidth * 0.7);
+        const startY = -80 - Math.random() * 60;
+        m.style.left = startX + 'px';
+        m.style.top  = startY + 'px';
+
+        // Угол наклона streak'а — варьируется в диапазоне 20°…40°
+        const angle = (20 + Math.random() * 20).toFixed(1) + 'deg';
+        m.style.setProperty('--angle', angle);
+
+        // Длина «хвоста» — fireball'ы длиннее
+        const len = isFireball ? (260 + Math.random() * 120) : (180 + Math.random() * 120);
+        m.style.setProperty('--len', len + 'px');
+
+        // Расстояние полёта (в направлении угла) — большие для красивого пролёта
+        const distance = (1.0 + Math.random() * 0.4) * Math.max(window.innerWidth, window.innerHeight);
+        const rad = parseFloat(angle) * Math.PI / 180;
+        const dx = Math.cos(rad) * distance;
+        const dy = Math.sin(rad) * distance;
+        m.style.setProperty('--dx', dx.toFixed(0) + 'px');
+        m.style.setProperty('--dy', dy.toFixed(0) + 'px');
+
+        // Скорость варьируется — большие fireball'ы летят медленнее (драматичнее)
+        const duration = isFireball ? (2.4 + Math.random() * 0.6) : (1.5 + Math.random() * 0.8);
+        m.style.animationDuration = duration.toFixed(2) + 's';
+
         document.body.appendChild(m);
-        setTimeout(() => m.remove(), 2200);
+        setTimeout(() => m.remove(), (duration + 0.3) * 1000);
       }
 
       function enter() {
@@ -1825,8 +1927,9 @@
         spawnMeteor();
         meteorTimer = setInterval(() => {
           spawnMeteor();
-          if (Math.random() < 0.35) setTimeout(spawnMeteor, 200 + Math.random() * 400);
-        }, 1400);
+          // 25% шанс второго метеора подряд для эффекта «дождя»
+          if (Math.random() < 0.25) setTimeout(spawnMeteor, 300 + Math.random() * 600);
+        }, 1800);
         exitTimer = setTimeout(exit, 30000);
         setTimeout(() => {
           window.addEventListener('click', exit, { once: true, capture: true });
