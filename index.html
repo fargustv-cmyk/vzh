@@ -984,7 +984,7 @@
       filter: drop-shadow(0 0 3px rgba(180, 220, 255, 0.70));
       opacity: 0;
       transform-origin: 100% 50%;
-      animation: meteor-streak 1.8s cubic-bezier(.32,.72,.2,1) forwards;
+      animation: meteor-streak 1.8s linear forwards;
       will-change: transform, opacity;
     }
     .meteor::after {
@@ -1048,11 +1048,13 @@
         0 0 60px 18px rgba(255, 120, 40, 0.18);
     }
     @keyframes meteor-streak {
-      0%   { opacity: 0; transform: translate3d(0, 0, 0) rotate(var(--angle, 25deg)) scaleX(0.35); }
-      8%   { opacity: 1; transform: translate3d(0, 0, 0) rotate(var(--angle, 25deg)) scaleX(0.7); }
-      18%  { opacity: 1; transform: translate3d(calc(var(--dx, 90vw) * 0.15), calc(var(--dy, 70vh) * 0.15), 0) rotate(var(--angle, 25deg)) scaleX(1); }
-      88%  { opacity: 1; transform: translate3d(calc(var(--dx, 90vw) * 0.92), calc(var(--dy, 70vh) * 0.92), 0) rotate(var(--angle, 25deg)) scaleX(1.05); }
-      100% { opacity: 0; transform: translate3d(var(--dx, 90vw), var(--dy, 70vh), 0) rotate(var(--angle, 25deg)) scaleX(1.1); }
+      /* Линейное движение — голова метеора летит с постоянной скоростью.
+         Только opacity меняется на старте и финише, чтобы streak плавно
+         появлялся и таял, не «тормозя» в полёте. */
+      0%   { opacity: 0; transform: translate3d(0, 0, 0) rotate(var(--angle, 25deg)); }
+      6%   { opacity: 1; }
+      94%  { opacity: 1; }
+      100% { opacity: 0; transform: translate3d(var(--dx, 90vw), var(--dy, 70vh), 0) rotate(var(--angle, 25deg)); }
     }
 
     @media (prefers-reduced-motion: reduce) {
