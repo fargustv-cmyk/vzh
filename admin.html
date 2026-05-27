@@ -1140,4 +1140,146 @@
       if (!groupId) return;
       const slug = groupId.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
       if (!slug) { alert('Некорректный ID'); return; }
-      const baseAccent = '#
+      const baseAccent = '#7a5cc9';
+      const sister1 = {
+        id: uid('p'), name: '', type: '', variant: 'для физлиц', group: slug, description: '',
+        logo: '', url: '', accent: baseAccent, background: '',
+        sections: [{ title: 'О направлении', body: '' }, { title: 'Идея', body: '' }],
+        links: [], directions: [], cta: { label: 'Перейти', url: '' }, hidden: false
+      };
+      const sister2 = {
+        id: uid('p'), name: '', type: '', variant: 'для юрлиц', group: slug, description: '',
+        logo: '', url: '', accent: baseAccent, background: '',
+        sections: [{ title: 'О направлении', body: '' }, { title: 'Условия', body: '' }],
+        links: [], directions: [], cta: { label: 'Связаться', url: '' }, hidden: false
+      };
+      state.projects.push(sister1, sister2);
+      saveState();
+      toast('Пара сестёр создана. Group: ' + slug);
+    });
+
+    /* ----- Import / Export ----- */
+    document.getElementById('download-btn').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'cards.json';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 500);
+      toast('Файл скачан');
+    });
+
+    /* ----- Save to GitHub (опубликовать на сайт) ----- */
+    const GH_REPO_OWNER = 'fargustv-cmyk';
+    const GH_REPO_NAME  = 'vzh';
+    const GH_FILE_PATH  = 'cards.json';
+    const GH_TOKEN_KEY  = 'vzh_admin_gh_token_v1';
+
+    async function saveToGitHub() {
+      let token = localStorage.getItem(GH_TOKEN_KEY);
+      if (!token) {
+        token = prompt(
+          'GitHub Personal Access Token\n\n' +
+          'Нужен токен с правами Contents: Read+Write на репо ' + GH_REPO_OWNER + '/' + GH_REPO_NAME + '.\n' +
+          'Создай на https://github.com/settings/personal-access-tokens и вставь сюда. ' +
+          'Сохранится только в этом браузере (localStorage).'
+        );
+        if (!token) return;
+        localStorage.setItem(GH_TOKEN_KEY, token.trim());
+      }
+      const btn = document.getElementById('github-save-btn');
+      const origLabel = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Сохраняю...';
+
+      try {
+        const url = `https://api.github.com/repos/${GH_REPO_OWNER}/${GH_REPO_NAME}/contents/${GH_FILE_PATH}`;
+        const headers = {
+          'Authorization': 'Bearer ' + token,
+          'Accept': 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28'
+        };
+
+        // 1. Получаем текущий SHA файла
+        const getRes = await fetch(url, { headers });
+        if (!getRes.ok) {
+          const txt = await getRes.text();
+          throw new Error('GET cards.json: ' + getRes.status + ' ' + txt.slice(0, 200));
+        }
+        const meta = await getRes.json();
+        const sha = meta.sha;
+
+        // 2. Кодируем JSON в base64 (с поддержкой Unicode)
+        const jsonText = JSON.stringify(state, null, 2);
+        const b64 = btoa(unescape(encodeURIComponent(jsonText)));
+
+        // 3. PUT с новым содержимым
+        const putRes = await fetch(url, {
+          method: 'PUT',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: 'admin: update cards.json',
+            content: b64,
+            sha: sha
+          })
+        });
+        if (!putRes.ok) {
+          const txt = await putRes.text();
+          throw new Error('PUT: ' + putRes.status + ' ' + txt.slice(0, 200));
+        }
+        const result = await putRes.json();
+        btn.textContent = '✓ Сохранено';
+        toast('Сохранено в GitHub. Vercel пересоберёт через ~1 мин. Коммит: ' + result.commit.sha.slice(0, 7));
+        setTimeout(() => { btn.textContent = origLabel; btn.disabled = false; }, 4000);
+      } catch (e) {
+        btn.textContent = origLabel;
+        btn.disabled = false;
+        const msg = String(e.message || e);
+        alert('Ошибка сохранения:\n\n' + msg + '\n\nПроверь токен (Contents: Read+Write). При 401/403 токен будет сброшен — при следующем нажатии запросится заново.');
+        if (msg.includes('401') || msg.includes('403') || msg.includes('Bad credentials')) {
+          localStorage.removeItem(GH_TOKEN_KEY);
+        }
+      }
+    }
+    document.getElementById('github-save-btn').addEventListener('click', saveToGitHub);
+
+    document.getElementById('import-file').addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (!data.profile || !Array.isArray(data.projects)) throw new Error('Неверная структура');
+        state = data;
+        saveState();
+        toast('Импортировано');
+      } catch (err) {
+        alert('Не удалось импортировать: ' + err.message);
+      } finally {
+        e.target.value = '';
+      }
+    });
+
+    /* ----- Helpers ----- */
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function escapeAttr(s) { return escapeHtml(s); }
+
+    function renderJsonPreview() {
+      document.getElementById('json-preview').textContent = JSON.stringify(state, null, 2);
+    }
+
+    function renderAll() {
+      renderProfile();
+      renderProfileAbout();
+      renderProjects();
+      renderContacts();
+      renderFooter();
+      renderJsonPreview();
+    }
+
+    renderAll();
+  </script>
+</body>
+</html>
