@@ -1017,6 +1017,8 @@
         </div>
       `;
       m.classList.add('open');
+      // Прикрепить кнопку загрузки файла-логотипа
+      attachImageUpload('m-logo', { maxDim: 256 });
 
       // ----- Background mode editor -----
       const bgPreview   = document.getElementById('bg-preview');
