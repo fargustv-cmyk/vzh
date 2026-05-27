@@ -320,11 +320,15 @@
       border-radius: inherit;
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
+      /* Явный transform на каждой стороне — гарантирует участие в 3D-контексте
+         card-inner и корректную работу backface-visibility. Без явного transform
+         на front в некоторых браузерах (Safari, старый Firefox) обратная сторона
+         «протекает» через лицевую — видны зеркальные логотип/название. */
+      transform: translateZ(0);
       color: #fff;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      /* Hairline top highlight + subtle ambient + soft key shadow */
       box-shadow:
         inset 0 0.5px 0 rgba(255,255,255,0.24),
         inset 0 0 0 0.5px rgba(255,255,255,0.04),
@@ -332,6 +336,10 @@
         0 10px 22px rgba(0,0,0,0.30);
       transition: box-shadow 520ms cubic-bezier(.32,.72,0,1);
     }
+    /* Front с явной нулевой ротацией = тот же 3D-контекст, что и back.
+       Без этого front может оказаться в плоском контексте, и при повороте
+       card-inner на -180° front покажется зеркально. */
+    .face.front { transform: rotateY(0deg) translateZ(0); }
     /* Active = карта поднята из стопки лицом вверх (перед переворотом).
        Тень чуть глубже, чем у peek, но мягче, чем у flipped — даёт визуально
        понять, что карта «выбрана» и следующий тап её перевернёт. */
@@ -414,7 +422,7 @@
       padding: 16px 18px 18px;
     }
     .back {
-      transform: rotateY(-180deg);
+      transform: rotateY(-180deg) translateZ(0);
       background:
         radial-gradient(120% 80% at 30% 0%, rgba(255,255,255,0.05) 0%, transparent 55%),
         linear-gradient(170deg, #1c1c1e 0%, #0a0a0c 100%);
@@ -1734,29 +1742,4 @@
         s.style.width = size + 'px';
         s.style.height = size + 'px';
         s.style.left = (10 + Math.random() * 80).toFixed(2) + '%';
-        s.style.top  = (5 + Math.random() * 85).toFixed(2) + '%';
-        s.style.opacity = '0.90';
-        s.style.boxShadow = `0 0 ${size * 3}px ${size * 1.4}px rgba(255,255,255,0.45)`;
-        setDrift(s, true);
-        s.style.setProperty('--d', (3 + Math.random() * 2).toFixed(2) + 's');
-        s.style.setProperty('--delay', (Math.random() * 3).toFixed(2) + 's');
-        s.style.setProperty('--max', '0.95');
-        s.style.setProperty('--min', '0.45');
-        frag.appendChild(s);
-      }
-
-      field.appendChild(frag);
-    }
-
-    /* ----- Boot ----- */
-    (async () => {
-      generateStarfield();
-      const data = await loadData();
-      renderProfile(data.profile || {});
-      initStack(data.projects || []);
-      renderContacts(data.contacts || []);
-      renderFooter(data.footer || {});
-    })();
-  </script>
-</body>
-</html>
+      
