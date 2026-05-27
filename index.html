@@ -1742,4 +1742,30 @@
         s.style.width = size + 'px';
         s.style.height = size + 'px';
         s.style.left = (10 + Math.random() * 80).toFixed(2) + '%';
+        s.style.top  = (5 + Math.random() * 85).toFixed(2) + '%';
+        s.style.opacity = '0.90';
+        s.style.boxShadow = `0 0 ${size * 3}px ${size * 1.4}px rgba(255,255,255,0.45)`;
+        setDrift(s, true);
+        s.style.setProperty('--d', (3 + Math.random() * 2).toFixed(2) + 's');
+        s.style.setProperty('--delay', (Math.random() * 3).toFixed(2) + 's');
+        s.style.setProperty('--max', '0.95');
+        s.style.setProperty('--min', '0.45');
+        frag.appendChild(s);
+      }
+
+      field.appendChild(frag);
+    }
+
+    /* ----- Boot ----- */
+    (async () => {
+      generateStarfield();
+      const data = await loadData();
+      renderProfile(data.profile || {});
+      initStack(data.projects || []);
+      renderContacts(data.contacts || []);
+      renderFooter(data.footer || {});
+    })();
+  </script>
+</body>
+</html>
       
