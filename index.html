@@ -967,6 +967,17 @@
       pointer-events: none;
       transform: translateY(8px) scale(0.985);
     }
+    /* Блокировка скролла на время cosmic-mode и reveal-волны после выхода.
+       Страница становится точно по высоте viewport, скроллбар не виден —
+       пустое чёрное небо без полосы прокрутки сбоку, и пользователь не
+       уезжает вниз случайным жестом во время анимации. */
+    html.cosmic-locked,
+    body.cosmic-mode,
+    body.cosmic-revealing {
+      overflow: hidden !important;
+      height: 100vh;
+      touch-action: none;
+    }
     /* Поэтапное появление при выходе — класс cosmic-revealing держится
        пока идёт reveal-волна, потом снимается JS-таймером. */
     body.cosmic-revealing .profile  { transition-delay: 0ms;   }
@@ -2018,6 +2029,9 @@
       function enter() {
         if (active) return;
         active = true;
+        // Лочим скролл и прокручиваем наверх для чистого full-viewport кадра
+        document.documentElement.classList.add('cosmic-locked');
+        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
         document.body.classList.add('cosmic-mode');
         // Стартовый залп — 3 метеора каскадом, не перегружая глаз
         for (let k = 0; k < 3; k++) setTimeout(spawnMeteor, k * 220);
@@ -2055,6 +2069,7 @@
         // (max delay 620ms + transition 800ms + buffer 200ms)
         setTimeout(() => {
           document.body.classList.remove('cosmic-revealing');
+          document.documentElement.classList.remove('cosmic-locked');
         }, 1700);
       }
 
