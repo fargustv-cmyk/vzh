@@ -179,6 +179,10 @@
       width: 96px; height: 96px;
       border-radius: 24px;
       object-fit: cover;
+      /* object-position 50% 30% сдвигает видимое окно изображения вверх по
+         кадру — то есть в squircle-контейнере видна верхняя часть фото,
+         где обычно голова. По умолчанию center 50% обрезал голову сверху. */
+      object-position: 50% 30%;
       box-shadow:
         0 0 0 0.5px rgba(255,255,255,0.20),
         0 0 0 3px rgba(255,255,255,0.04),
