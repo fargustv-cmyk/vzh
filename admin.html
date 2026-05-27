@@ -308,10 +308,12 @@
         <div class="muted">Изменения сохраняются локально автоматически. «Сохранить на сайт» — пушит на GitHub, Vercel перестроит за ~1 мин.</div>
       </div>
       <div class="actions">
+        <span id="sync-badge" style="font-size:12px; margin-right:8px; align-self:center;">● Загрузка…</span>
+        <button id="reload-server-btn" class="ghost" title="Подтянуть актуальный cards.json с сайта">↻ С сайта</button>
         <label class="btn ghost" for="import-file">Импорт JSON</label>
         <input id="import-file" type="file" accept="application/json" hidden />
         <button id="download-btn" class="ghost">Скачать JSON</button>
-        <button id="github-save-btn" class="primary" title="Сохранить cards.json в GitHub и опубликовать на vozhakin.group">Сохранить на сайт</button>
+        <button id="github-save-btn" class="primary" title="Сохранить cards.json в GitHub и опубликовать на vozhakin.group">Опубликовать на сайт</button>
       </div>
     </header>
 
@@ -426,6 +428,7 @@
     }
 
     const STORAGE_KEY = 'vozhakin_cards_v3';
+    const SYNC_KEY    = 'vozhakin_cards_v3_synced';   // timestamp of last server sync
 
     /* Mirrors index.html's gradientFor — used for "Auto" background preview */
     function gradientForPreview(hex) {
@@ -474,18 +477,107 @@
       footer: { brand: 'Vozhakin Group', logo: '/vzh.png', year: 2025 }
     };
 
-    let state = loadState();
+    let state = structuredClone(DEFAULT);   // временное значение до bootLoad
+    let isDirty = false;                     // есть локальные правки, не отправленные на сайт
 
-    function loadState() {
+    function persistLocal() {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) return JSON.parse(raw);
-      } catch (e) {}
-      return structuredClone(DEFAULT);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        return true;
+      } catch (e) {
+        alert('❗ Не удалось сохранить локально: ' + e.message + '\nВозможно localStorage отключён (incognito или браузер запрещает). Правки не сохранятся при перезагрузке.');
+        return false;
+      }
     }
+
+    function markSynced() {
+      try { localStorage.setItem(SYNC_KEY, Date.now().toString()); } catch (e) {}
+      isDirty = false;
+      updateSyncBadge();
+    }
+
+    function setDirty() {
+      isDirty = true;
+      updateSyncBadge();
+    }
+
+    function updateSyncBadge() {
+      const badge = document.getElementById('sync-badge');
+      if (!badge) return;
+      if (isDirty) {
+        badge.textContent = '● Локальные правки — не опубликованы';
+        badge.style.color = '#fbbf24';
+      } else {
+        badge.textContent = '● Синхронизировано с сайтом';
+        badge.style.color = '#22c55e';
+      }
+    }
+
+    /* saveState — публичный API: сохраняет в localStorage + перерисовывает UI + помечает dirty */
     function saveState() {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+      persistLocal();
+      setDirty();
       renderAll();
+    }
+
+    /* Загрузка с сайта (cards.json в репо) — для первой загрузки или ручного refresh */
+    async function fetchServerState() {
+      const res = await fetch('/cards.json?bust=' + Date.now(), { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if (!data || !data.profile || !Array.isArray(data.projects)) {
+        throw new Error('Неверный формат cards.json');
+      }
+      return data;
+    }
+
+    /* На старте: если в localStorage есть локальные правки — грузим их,
+       иначе тянем свежий cards.json с сайта. */
+    async function bootLoad() {
+      const localRaw = localStorage.getItem(STORAGE_KEY);
+      if (localRaw) {
+        try {
+          state = JSON.parse(localRaw);
+          // Если synced-timestamp есть и localStorage не менялся после него —
+          // считаем что данные синхронизированы. Иначе — есть dirty правки.
+          const syncTs = parseInt(localStorage.getItem(SYNC_KEY) || '0', 10);
+          isDirty = syncTs === 0;   // если ни разу не синкали — считаем dirty
+          renderAll();
+          updateSyncBadge();
+          return;
+        } catch (e) { /* fallback ниже */ }
+      }
+      // localStorage пустой — пробуем подгрузить с сайта
+      try {
+        state = await fetchServerState();
+        persistLocal();
+        markSynced();
+        renderAll();
+        toast('Загружено с сайта');
+      } catch (e) {
+        state = structuredClone(DEFAULT);
+        renderAll();
+        toast('Не удалось загрузить с сайта, использую дефолт: ' + e.message);
+      }
+    }
+
+    /* Ручная перезагрузка с сайта — спрашивает подтверждение если есть локальные правки */
+    async function reloadFromServer() {
+      if (isDirty) {
+        if (!confirm('У вас есть несохранённые локальные правки. Точно перезагрузить с сайта? Локальные изменения будут потеряны.')) {
+          return;
+        }
+      }
+      try {
+        const fresh = await fetchServerState();
+        state = fresh;
+        persistLocal();
+        markSynced();
+        renderAll();
+        toast('Перезагружено с сайта');
+      } catch (e) {
+        alert('Ошибка загрузки: ' + e.message);
+      }
     }
 
     function uid(prefix='id') {
@@ -1201,7 +1293,8 @@
         if (!res.ok) {
           throw new Error((out && out.error) ? out.error : ('HTTP ' + res.status));
         }
-        btn.textContent = '✓ Сохранено';
+        btn.textContent = '✓ Опубликовано';
+        markSynced();
         toast('Опубликовано на сайте. Vercel пересоберёт через ~1 мин. Коммит: ' + (out.sha ? out.sha.slice(0, 7) : '—'));
         setTimeout(() => { btn.textContent = origLabel; btn.disabled = false; }, 4000);
       } catch (e) {
@@ -1226,8 +1319,10 @@
         const data = JSON.parse(text);
         if (!data.profile || !Array.isArray(data.projects)) throw new Error('Неверная структура');
         state = data;
-        saveState();
-        toast('Импортировано');
+        persistLocal();
+        setDirty();
+        renderAll();
+        toast('Импортировано — нажмите «Опубликовать на сайт» чтобы залить');
       } catch (err) {
         alert('Не удалось импортировать: ' + err.message);
       } finally {
@@ -1254,7 +1349,10 @@
       renderJsonPreview();
     }
 
-    renderAll();
+    // bootLoad — асинхронно: либо localStorage, либо fetch с сайта,
+    // плюс выставление sync-badge и обработчика кнопки «↻ С сайта».
+    document.getElementById('reload-server-btn').addEventListener('click', reloadFromServer);
+    bootLoad();
   </script>
 </body>
 </html>
