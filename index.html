@@ -434,17 +434,16 @@
     .top-row {
       display: flex;
       align-items: center;
-      gap: 11px;
-      min-height: 36px;
+      gap: 14px;
+      min-height: 64px;
     }
     .logo-box {
-      width: 36px; height: 36px;
-      border-radius: 11px;
+      width: 64px; height: 64px;
+      border-radius: 18px;
       background: rgba(255,255,255,0.10);
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
       overflow: hidden;
-      /* Real glass chip: hard top highlight + hairline + bottom-edge shadow */
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.32),
         inset 0 0 0 0.5px rgba(255,255,255,0.14),
@@ -455,14 +454,14 @@
     .logo-box img {
       width: 100%; height: 100%;
       object-fit: contain;
-      padding: 6px;
+      padding: 10px;
     }
     .logo-box .initial {
-      font-size: 15px; font-weight: 500; color: #fff;
+      font-size: 26px; font-weight: 500; color: #fff;
       letter-spacing: -0.01em;
     }
     .brand-name {
-      font-size: 15px;
+      font-size: 17px;
       font-weight: 500;
       letter-spacing: -0.005em;
       white-space: nowrap;
@@ -1514,7 +1513,7 @@
     // out from under the card below. The last card sits fully visible at the
     // bottom of the stack with its slogan showing. Tap any card to flip it;
     // tap again or the × button to flip back.
-    const PEEK_H = 60;
+    const PEEK_H = 84;   // увеличен чтобы 64-px лого + название умещались в peek-полосе
     const SIBLING_PEEK_H = 15;  // максимально тесный зазор между «сёстрами» — почти впритык
     const TOP_H = 280;
     const FLIPPED_H_MIN = 360;  // нижняя граница flipped-высоты; реальная подстраивается под текст
