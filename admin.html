@@ -129,6 +129,19 @@
       font-weight: 500;
       vertical-align: 1px;
     }
+    .group-badge {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 1px 7px;
+      background: rgba(106, 76, 219, 0.18);
+      border: 0.5px solid rgba(106, 76, 219, 0.50);
+      border-radius: 999px;
+      font-size: 10px;
+      letter-spacing: 0.02em;
+      color: #b9a8ff;
+      font-weight: 500;
+      vertical-align: 1px;
+    }
     .project-row .logo-prev {
       width: 44px;
       height: 44px;
@@ -292,12 +305,13 @@
     <header class="topbar">
       <div>
         <h1>Админка vozhakin.group</h1>
-        <div class="muted">Меняйте данные → «Скачать cards.json» → закоммитьте в репозиторий</div>
+        <div class="muted">Изменения сохраняются локально автоматически. «Сохранить на сайт» — пушит на GitHub, Vercel перестроит за ~1 мин.</div>
       </div>
       <div class="actions">
         <label class="btn ghost" for="import-file">Импорт JSON</label>
         <input id="import-file" type="file" accept="application/json" hidden />
-        <button id="download-btn" class="primary">Скачать cards.json</button>
+        <button id="download-btn" class="ghost">Скачать JSON</button>
+        <button id="github-save-btn" class="primary" title="Сохранить cards.json в GitHub и опубликовать на vozhakin.group">Сохранить на сайт</button>
       </div>
     </header>
 
@@ -338,7 +352,10 @@
     <section class="section">
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:8px;">
         <h2 style="margin:0">Проекты</h2>
-        <button id="add-project" class="primary">+ Добавить проект</button>
+        <div style="display:flex; gap:8px;">
+          <button id="add-sibling-pair" class="ghost" title="Создать сразу две связанные карточки с одинаковым group">+ Пара сестёр</button>
+          <button id="add-project" class="primary">+ Добавить проект</button>
+        </div>
       </div>
       <div id="projects-list" class="project-list"></div>
       <p class="hint">Перетаскивайте за «⋮⋮» чтобы менять порядок. «Скрыть» убирает карточку в архив ниже — на публичной странице она пропадает, но остаётся редактируемой здесь.</p>
@@ -562,13 +579,16 @@
         row.dataset.idx = idx;
         const variantSuffix = p.variant ? ` · ${escapeHtml(p.variant)}` : '';
         const archivedBadge = isHidden ? `<span class="arch-badge">скрыто</span>` : '';
+        const groupBadge = p.group
+          ? `<span class="group-badge" title="Связаны через group=${escapeHtml(p.group)} в карусели сестёр">🔗 ${escapeHtml(p.group)}</span>`
+          : '';
         row.innerHTML = `
           <span class="handle" title="Перетащить">⋮⋮</span>
           <div class="logo-prev" style="background: ${p.accent || '#444'}; display:flex; align-items:center; justify-content:center; padding: 0;">
             ${p.logo ? `<img src="${p.logo}" alt="" style="width:100%;height:100%;object-fit:contain;padding:4px;" onerror="this.style.display='none'" />` : `<span style="color:#fff; font-weight:600; font-size:14px;">${escapeHtml((p.name||'?').slice(0,1))}</span>`}
           </div>
           <div class="meta">
-            <div class="name">${escapeHtml(p.name || '(без названия)')}${variantSuffix}${archivedBadge}</div>
+            <div class="name">${escapeHtml(p.name || '(без названия)')}${variantSuffix}${archivedBadge}${groupBadge}</div>
             <div class="desc">${escapeHtml(p.description || '')}</div>
             <div class="url">${escapeHtml(p.url || '— без ссылки —')}</div>
           </div>
@@ -1114,54 +1134,10 @@
       });
     }
 
-    /* ----- Import / Export ----- */
-    document.getElementById('download-btn').addEventListener('click', () => {
-      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'cards.json';
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 500);
-      toast('Файл скачан');
-    });
-
-    document.getElementById('import-file').addEventListener('change', async e => {
-      const file = e.target.files[0];
-      if (!file) return;
-      try {
-        const text = await file.text();
-        const data = JSON.parse(text);
-        if (!data.profile || !Array.isArray(data.projects)) throw new Error('Неверная структура');
-        state = data;
-        saveState();
-        toast('Импортировано');
-      } catch (err) {
-        alert('Не удалось импортировать: ' + err.message);
-      } finally {
-        e.target.value = '';
-      }
-    });
-
-    /* ----- Helpers ----- */
-    function escapeHtml(s) {
-      return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    }
-    function escapeAttr(s) { return escapeHtml(s); }
-
-    function renderJsonPreview() {
-      document.getElementById('json-preview').textContent = JSON.stringify(state, null, 2);
-    }
-
-    function renderAll() {
-      renderProfile();
-      renderProfileAbout();
-      renderProjects();
-      renderContacts();
-      renderFooter();
-      renderJsonPreview();
-    }
-
-    renderAll();
-  </script>
-</body>
-</html>
+    /* ----- Sibling pair helper — создаёт сразу две связанные карточки ----- */
+    document.getElementById('add-sibling-pair').addEventListener('click', () => {
+      const groupId = prompt('ID группы для пары сестёр (латиницей, без пробелов — например "cineshift"):');
+      if (!groupId) return;
+      const slug = groupId.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+      if (!slug) { alert('Некорректный ID'); return; }
+      const baseAccent = '#
