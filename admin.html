@@ -263,6 +263,50 @@
       word-break: break-word;
       margin-top: 10px;
     }
+  
+    /* ===== Mobile responsive ===== */
+    @media (max-width: 640px) {
+      .container { padding: 16px 12px 80px; }
+      .topbar { flex-direction: column; align-items: stretch; gap: 12px; }
+      .topbar .actions { flex-wrap: wrap; gap: 8px; }
+      .topbar .actions .btn,
+      .topbar .actions button,
+      .topbar .actions label { font-size: 13px; padding: 8px 12px; }
+      #sync-badge { display: block; width: 100%; text-align: center; margin: 0 0 4px; order: -1; }
+      h1 { font-size: 22px; }
+      h2 { font-size: 16px; }
+      .section { padding: 16px 14px; }
+      .grid-2 { grid-template-columns: 1fr !important; }
+      .project-row {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 12px 10px;
+      }
+      .project-row .handle { display: none; }
+      .project-row .logo-prev { width: 40px; height: 40px; }
+      .project-row .meta { flex: 1 1 calc(100% - 56px); min-width: 0; }
+      .project-row .meta .name { font-size: 14px; }
+      .project-row .meta .desc, .project-row .meta .url { font-size: 11px; }
+      .project-row .row-actions {
+        flex: 1 1 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 6px;
+      }
+      .project-row .row-actions button {
+        width: 100%;
+        font-size: 12px;
+        padding: 8px 6px;
+      }
+      .modal .modal-body { padding: 16px 14px; }
+      .modal { width: 96%; max-height: 92vh; border-radius: 18px; }
+      .modal .grid-2 { grid-template-columns: 1fr !important; gap: 12px; }
+      .modal-footer { flex-direction: column-reverse; gap: 8px; }
+      .modal-footer button { width: 100%; }
+      label { font-size: 12px; }
+      input[type=text], input[type=color], textarea, select { font-size: 14px; padding: 10px 12px; }
+      #json-preview { font-size: 11px; max-height: 240px; }
+    }
   </style>
 </head>
 <body style="visibility: hidden;">
@@ -270,39 +314,143 @@
   <!-- ============================================================
        Парольная защита админки через серверную проверку.
        Пароль хранится в ADMIN_PASSWORD env var на Vercel — НЕ в исходнике.
-       Клиент отправляет пароль на /api/check-password, сервер сравнивает.
-       После успешной проверки факт авторизации хранится в sessionStorage
-       (закрытие вкладки = разлогин). Изменить пароль = поменять переменную
-       ADMIN_PASSWORD в Vercel и redeploy.
+       Гейт рисуется как fixed overlay с blur поверх админки, блокирует все
+       клики до успешной проверки. sessionStorage = выход при закрытии вкладки.
        ============================================================ -->
+  <style>
+    #admin-gate-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 999999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(8, 8, 12, 0.65);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      font-family: -apple-system, 'Inter', sans-serif;
+      color: #e6e6ea;
+    }
+    #admin-gate-overlay .gate-card {
+      width: 100%;
+      max-width: 360px;
+      background: rgba(20, 20, 24, 0.78);
+      border: 0.5px solid rgba(255, 255, 255, 0.14);
+      border-radius: 22px;
+      padding: 32px 28px;
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.20),
+        0 24px 60px rgba(0,0,0,0.55);
+    }
+    #admin-gate-overlay h1 {
+      margin: 0 0 6px;
+      font-size: 19px;
+      font-weight: 500;
+      letter-spacing: -0.015em;
+    }
+    #admin-gate-overlay .sub {
+      margin: 0 0 22px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.55);
+    }
+    #admin-gate-overlay .err {
+      margin: 0 0 12px;
+      font-size: 12px;
+      color: #fbbf24;
+    }
+    #admin-gate-overlay input[type=password] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 13px 14px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 0.5px solid rgba(255, 255, 255, 0.18);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      margin-bottom: 12px;
+    }
+    #admin-gate-overlay input[type=password]:focus {
+      border-color: rgba(255, 255, 255, 0.35);
+      background: rgba(255, 255, 255, 0.10);
+    }
+    #admin-gate-overlay button {
+      width: 100%;
+      padding: 13px;
+      background: #fff;
+      color: #0a0a0e;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: transform 120ms ease, background 160ms ease;
+    }
+    #admin-gate-overlay button:hover { background: #f5f5f7; }
+    #admin-gate-overlay button:active { transform: scale(0.98); }
+    #admin-gate-overlay button:disabled { opacity: 0.6; cursor: default; }
+    @media (max-width: 540px) {
+      #admin-gate-overlay .gate-card { padding: 28px 22px; border-radius: 18px; }
+    }
+  </style>
   <script>
     (function () {
       const SESSION_KEY = 'vozhakin_admin_auth_v2';
 
-      function reveal() { document.body.style.visibility = 'visible'; }
-
-      function showGate(message) {
-        document.body.innerHTML = '';
+      function reveal() {
+        // Просто снять visibility hidden — overlay уже либо удалён, либо никогда не создавался
         document.body.style.visibility = 'visible';
-        document.body.style.cssText += 'display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0a0a0c;color:#e6e6ea;font-family:-apple-system,Inter,sans-serif;';
-        const card = document.createElement('div');
-        card.style.cssText = 'background:rgba(20,20,24,0.6);border:0.5px solid rgba(255,255,255,0.12);border-radius:18px;padding:32px 28px;max-width:340px;width:90%;backdrop-filter:blur(40px) saturate(180%);-webkit-backdrop-filter:blur(40px) saturate(180%);box-shadow:0 20px 50px rgba(0,0,0,0.5);';
-        card.innerHTML = ''
-          + '<h1 style="margin:0 0 6px;font-size:18px;font-weight:500;letter-spacing:-0.01em;">Админка</h1>'
-          + '<p style="margin:0 0 20px;font-size:13px;color:rgba(255,255,255,0.55);">Введите пароль для доступа</p>'
-          + (message ? '<p id="gate-err" style="margin:0 0 12px;font-size:12px;color:#fbbf24;">' + message + '</p>' : '')
-          + '<input id="gate-pw" type="password" autofocus autocomplete="current-password" placeholder="Пароль" style="width:100%;box-sizing:border-box;padding:12px 14px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.16);border-radius:11px;color:#fff;font-size:14px;font-family:inherit;outline:none;margin-bottom:12px;" />'
-          + '<button id="gate-submit" style="width:100%;padding:12px;background:#fff;color:#0a0a0e;border:none;border-radius:11px;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;">Войти</button>';
-        document.body.appendChild(card);
+        const o = document.getElementById('admin-gate-overlay');
+        if (o) o.remove();
+      }
 
-        const pw = document.getElementById('gate-pw');
-        const btn = document.getElementById('gate-submit');
+      function buildGate(message) {
+        // Если overlay уже есть — обновим только сообщение об ошибке
+        let overlay = document.getElementById('admin-gate-overlay');
+        if (overlay) {
+          const err = overlay.querySelector('.err');
+          if (message) {
+            if (err) err.textContent = message;
+            else {
+              const sub = overlay.querySelector('.sub');
+              const p = document.createElement('p');
+              p.className = 'err';
+              p.textContent = message;
+              sub.after(p);
+            }
+          }
+          const btn = overlay.querySelector('button');
+          btn.disabled = false; btn.textContent = 'Войти';
+          const pw = overlay.querySelector('input');
+          pw.disabled = false; pw.focus(); pw.select();
+          return overlay;
+        }
+        overlay = document.createElement('div');
+        overlay.id = 'admin-gate-overlay';
+        overlay.innerHTML =
+          '<div class="gate-card">' +
+            '<h1>🔒 Админка</h1>' +
+            '<p class="sub">Введите пароль для доступа</p>' +
+            (message ? '<p class="err">' + message + '</p>' : '') +
+            '<input type="password" autocomplete="current-password" placeholder="Пароль" autofocus />' +
+            '<button type="button">Войти</button>' +
+          '</div>';
+        document.body.appendChild(overlay);
+        document.body.style.visibility = 'visible';
+
+        const pw  = overlay.querySelector('input');
+        const btn = overlay.querySelector('button');
 
         async function submit() {
-          const password = pw.value.trim();
+          const password = (pw.value || '').trim();
           if (!password) { pw.focus(); return; }
-          btn.disabled = true;
-          btn.textContent = 'Проверяю...';
+          btn.disabled = true; btn.textContent = 'Проверяю...';
+          pw.disabled = true;
           try {
             const res = await fetch('/api/check-password', {
               method: 'POST',
@@ -311,32 +459,37 @@
             });
             if (res.ok) {
               sessionStorage.setItem(SESSION_KEY, '1');
-              // Кэшируем пароль для сразу-готового saveViaBackend
               localStorage.setItem('vzh_admin_pw_v1', password);
-              location.reload();
+              reveal();
               return;
             }
             const out = await res.json().catch(() => ({}));
             if (res.status === 503) {
-              showGate('Сервер не настроен: задайте ADMIN_PASSWORD в Vercel env vars.');
+              buildGate('Сервер не настроен (ADMIN_PASSWORD не задан в Vercel)');
             } else {
-              showGate('Неверный пароль');
+              buildGate('Неверный пароль');
             }
           } catch (e) {
-            showGate('Ошибка сети: ' + (e.message || e));
+            buildGate('Ошибка сети: ' + (e.message || e));
           }
         }
         btn.addEventListener('click', submit);
         pw.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+        setTimeout(() => pw.focus(), 50);
+        return overlay;
       }
 
-      // Уже авторизованы в этой сессии — пускаем сразу
+      // Если уже залогинены — просто показываем админку
       if (sessionStorage.getItem(SESSION_KEY) === '1') {
         reveal();
         return;
       }
-      // Иначе — показываем gate
-      showGate('');
+      // Иначе — рисуем overlay поверх. Делаем это сразу + дублируем на
+      // DOMContentLoaded на случай если body ещё не существует на момент
+      // выполнения этого инлайн-скрипта.
+      function init() { buildGate(''); }
+      if (document.body) init();
+      else document.addEventListener('DOMContentLoaded', init);
     })();
   </script>
 
