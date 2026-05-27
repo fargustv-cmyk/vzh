@@ -965,10 +965,17 @@
     }
     body.cosmic-mode .cosmic-hint { opacity: 1; }
     /* Метеор = тонкая полоса со сквозным градиентом (хвост) + сияющая
-       голова через ::after. Слегка изогнутая траектория за счёт промежуточных
-       keyframe-точек. Базовый цвет холодный голубовато-белый — как от ионизации
-       воздуха при входе в атмосферу. */
+       голова через ::after. Цвет задаётся через CSS-переменные, что позволяет
+       рендерить разноцветные метеоры (белые, синие, зелёные, жёлтые,
+       фиолетовые, огненные) одной общей таблицей правил. */
     .meteor {
+      /* Базовые цвета — по умолчанию синие (default fallback) */
+      --tail-mid:    rgba(150, 200, 255, 0.50);
+      --tail-bright: rgba(230, 240, 255, 0.88);
+      --streak-glow: rgba(140, 200, 255, 0.72);
+      --head-halo1:  rgba(140, 200, 255, 0.85);
+      --head-halo2:  rgba(80, 150, 255, 0.40);
+      --head-halo3:  rgba(60, 120, 255, 0.18);
       position: fixed;
       pointer-events: none;
       z-index: 1;
@@ -976,19 +983,19 @@
       height: 2px;
       background: linear-gradient(90deg,
         transparent 0%,
-        rgba(173, 216, 255, 0.10) 15%,
-        rgba(190, 220, 255, 0.45) 55%,
-        rgba(230, 240, 255, 0.85) 88%,
+        rgba(255, 255, 255, 0.08) 15%,
+        var(--tail-mid) 55%,
+        var(--tail-bright) 88%,
         #ffffff 100%);
       border-radius: 999px;
-      filter: drop-shadow(0 0 3px rgba(180, 220, 255, 0.70));
+      filter: drop-shadow(0 0 3px var(--streak-glow));
       opacity: 0;
       transform-origin: 100% 50%;
       animation: meteor-streak 1.8s linear forwards;
       will-change: transform, opacity;
     }
     .meteor::after {
-      /* Сияющая голова метеора — белое ядро + двойной голубой ореол */
+      /* Сияющая голова — белое ядро всегда (горячее), цветной ореол */
       content: '';
       position: absolute;
       right: -3px;
@@ -998,13 +1005,13 @@
       border-radius: 50%;
       background: radial-gradient(circle,
         #ffffff 0%,
-        rgba(220, 235, 255, 0.95) 30%,
-        rgba(160, 200, 255, 0.55) 60%,
+        rgba(255, 255, 255, 0.95) 30%,
+        var(--head-halo2) 60%,
         transparent 90%);
       box-shadow:
-        0 0 10px 2px rgba(180, 220, 255, 0.85),
-        0 0 22px 6px rgba(120, 180, 255, 0.40),
-        0 0 40px 12px rgba(100, 160, 255, 0.18);
+        0 0 10px 2px var(--head-halo1),
+        0 0 22px 6px var(--head-halo2),
+        0 0 40px 12px var(--head-halo3);
       filter: blur(0.4px);
     }
     .meteor::before {
@@ -1022,30 +1029,63 @@
       border-radius: 999px;
       filter: blur(0.5px);
     }
-    /* Огненный метеор — реже, ярче, тёплый оттенок (~5% случаев) */
+    /* === Цветовые палитры метеоров ===
+       Каждый класс переопределяет 6 CSS-переменных, что меняет цвет
+       хвоста, ореола и свечения. Голова остаётся бело-горячей. */
+    .meteor.color-white {
+      --tail-mid:    rgba(255, 255, 255, 0.55);
+      --tail-bright: rgba(255, 255, 255, 0.95);
+      --streak-glow: rgba(255, 255, 255, 0.85);
+      --head-halo1:  rgba(255, 255, 255, 0.90);
+      --head-halo2:  rgba(255, 255, 255, 0.45);
+      --head-halo3:  rgba(255, 255, 255, 0.22);
+    }
+    .meteor.color-blue {
+      --tail-mid:    rgba(140, 195, 255, 0.55);
+      --tail-bright: rgba(220, 235, 255, 0.92);
+      --streak-glow: rgba(120, 190, 255, 0.78);
+      --head-halo1:  rgba(120, 190, 255, 0.90);
+      --head-halo2:  rgba(70, 140, 255, 0.45);
+      --head-halo3:  rgba(50, 110, 250, 0.22);
+    }
+    .meteor.color-green {
+      --tail-mid:    rgba(130, 255, 195, 0.55);
+      --tail-bright: rgba(210, 255, 230, 0.92);
+      --streak-glow: rgba(100, 255, 170, 0.78);
+      --head-halo1:  rgba(110, 255, 170, 0.90);
+      --head-halo2:  rgba(60, 220, 130, 0.45);
+      --head-halo3:  rgba(30, 190, 90, 0.22);
+    }
+    .meteor.color-yellow {
+      --tail-mid:    rgba(255, 235, 130, 0.55);
+      --tail-bright: rgba(255, 245, 200, 0.92);
+      --streak-glow: rgba(255, 220, 90, 0.78);
+      --head-halo1:  rgba(255, 215, 80, 0.90);
+      --head-halo2:  rgba(255, 190, 40, 0.45);
+      --head-halo3:  rgba(225, 160, 20, 0.22);
+    }
+    .meteor.color-purple {
+      --tail-mid:    rgba(205, 155, 255, 0.55);
+      --tail-bright: rgba(235, 220, 255, 0.92);
+      --streak-glow: rgba(195, 130, 255, 0.78);
+      --head-halo1:  rgba(195, 130, 255, 0.90);
+      --head-halo2:  rgba(155, 80, 235, 0.45);
+      --head-halo3:  rgba(120, 50, 210, 0.22);
+    }
+    /* Огненный — реже, крупнее, тёплый — оставляем отдельным классом */
     .meteor.fireball {
+      --tail-mid:    rgba(255, 195, 130, 0.55);
+      --tail-bright: rgba(255, 230, 180, 0.92);
+      --streak-glow: rgba(255, 180, 100, 0.70);
+      --head-halo1:  rgba(255, 200, 130, 0.85);
+      --head-halo2:  rgba(255, 150, 60, 0.40);
+      --head-halo3:  rgba(255, 120, 40, 0.18);
       width: var(--len, 320px);
       height: 3px;
-      background: linear-gradient(90deg,
-        transparent 0%,
-        rgba(255, 180, 100, 0.12) 12%,
-        rgba(255, 195, 130, 0.55) 50%,
-        rgba(255, 230, 180, 0.92) 88%,
-        #fff5e0 100%);
-      filter: drop-shadow(0 0 5px rgba(255, 180, 100, 0.70));
     }
     .meteor.fireball::after {
       width: 12px; height: 12px;
       top: -5px; right: -4px;
-      background: radial-gradient(circle,
-        #fffaee 0%,
-        rgba(255, 220, 160, 0.95) 30%,
-        rgba(255, 170, 80, 0.55) 60%,
-        transparent 90%);
-      box-shadow:
-        0 0 14px 3px rgba(255, 200, 130, 0.85),
-        0 0 30px 8px rgba(255, 150, 60, 0.40),
-        0 0 60px 18px rgba(255, 120, 40, 0.18);
     }
     @keyframes meteor-streak {
       /* Линейное движение — голова метеора летит с постоянной скоростью.
@@ -1891,8 +1931,21 @@
       function spawnMeteor() {
         const m = document.createElement('div');
         m.className = 'meteor';
-        const isFireball = Math.random() < 0.06;
-        if (isFireball) m.classList.add('fireball');
+        // Цветовое распределение: 28% белый, 28% синий, 16% зелёный,
+        // 16% жёлтый, 8% фиолетовый, 4% огненный (fireball — крупный, медленный).
+        const r = Math.random();
+        const isFireball = r < 0.04;
+        if (isFireball) {
+          m.classList.add('fireball');
+        } else {
+          let color;
+          if      (r < 0.32) color = 'white';
+          else if (r < 0.60) color = 'blue';
+          else if (r < 0.76) color = 'green';
+          else if (r < 0.92) color = 'yellow';
+          else               color = 'purple';
+          m.classList.add('color-' + color);
+        }
 
         const W = window.innerWidth;
         const H = window.innerHeight;
