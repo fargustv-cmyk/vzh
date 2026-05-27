@@ -264,48 +264,90 @@
       margin-top: 10px;
     }
   
-    /* ===== Mobile responsive ===== */
+    /* ===== Mobile responsive (тщательный, не просто flex-wrap) ===== */
     @media (max-width: 640px) {
-      .container { padding: 16px 12px 80px; }
-      .topbar { flex-direction: column; align-items: stretch; gap: 12px; }
-      .topbar .actions { flex-wrap: wrap; gap: 8px; }
-      .topbar .actions .btn,
-      .topbar .actions button,
-      .topbar .actions label { font-size: 13px; padding: 8px 12px; }
-      #sync-badge { display: block; width: 100%; text-align: center; margin: 0 0 4px; order: -1; }
-      h1 { font-size: 22px; }
-      h2 { font-size: 16px; }
-      .section { padding: 16px 14px; }
-      .grid-2 { grid-template-columns: 1fr !important; }
+      body { padding: 16px 12px 80px; }
+      .container { max-width: 100%; }
+
+      /* Топбар: всё в столбик, бейдж синка на всю ширину сверху */
+      header.topbar { flex-direction: column; align-items: stretch; gap: 10px; margin-bottom: 18px; }
+      header.topbar h1 { font-size: 18px; }
+      header.topbar .muted { font-size: 11px; line-height: 1.4; }
+      .actions { gap: 6px; flex-wrap: wrap; }
+      .actions .btn, .actions button, .actions label.btn {
+        font-size: 12px; padding: 8px 12px; flex: 1 1 auto; min-width: 0;
+      }
+      #sync-badge { font-size: 11px !important; width: 100%; text-align: center; margin: 0 0 6px !important; }
+
+      /* Секции */
+      .section { padding: 14px 12px; margin-bottom: 12px; border-radius: 12px; }
+      .section h2 { font-size: 12px; margin-bottom: 12px; }
+      .section h2 + button.primary,
+      .section > div > button.primary { font-size: 13px; padding: 8px 12px; }
+
+      /* Все grid-2 (профиль, футер, модалка) — в одну колонку */
+      .grid-2 { grid-template-columns: 1fr !important; gap: 12px; }
+      .bg-grid { grid-template-columns: 1fr !important; gap: 10px; }
+
+      /* Лейблы и инпуты — крупнее под палец */
+      label { font-size: 12px; margin-bottom: 4px; }
+      input[type="text"], input[type="url"], input[type="color"], textarea, select {
+        font-size: 14px; padding: 11px 12px;
+      }
+      input[type="color"] { height: 44px; }
+
+      /* Карточки проектов — переверстаны через grid-template-areas
+         в две строки: [лого | мета] / [actions full-width] */
       .project-row {
-        flex-wrap: wrap;
-        gap: 10px;
+        display: grid !important;
+        grid-template-columns: 44px 1fr !important;
+        grid-template-areas:
+          'logo meta'
+          'actions actions' !important;
+        gap: 10px 12px;
         padding: 12px 10px;
+        align-items: center;
       }
       .project-row .handle { display: none; }
-      .project-row .logo-prev { width: 40px; height: 40px; }
-      .project-row .meta { flex: 1 1 calc(100% - 56px); min-width: 0; }
-      .project-row .meta .name { font-size: 14px; }
-      .project-row .meta .desc, .project-row .meta .url { font-size: 11px; }
+      .project-row .logo-prev { grid-area: logo; width: 44px; height: 44px; }
+      .project-row .meta { grid-area: meta; }
+      .project-row .meta .name { font-size: 13px; }
+      .project-row .meta .desc { font-size: 11px; }
+      .project-row .meta .url { font-size: 10px; }
       .project-row .row-actions {
-        flex: 1 1 100%;
+        grid-area: actions;
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
         gap: 6px;
+        margin-top: 2px;
       }
       .project-row .row-actions button {
-        width: 100%;
-        font-size: 12px;
-        padding: 8px 6px;
+        padding: 8px 4px; font-size: 11px; border-radius: 8px;
       }
-      .modal .modal-body { padding: 16px 14px; }
-      .modal { width: 96%; max-height: 92vh; border-radius: 18px; }
-      .modal .grid-2 { grid-template-columns: 1fr !important; gap: 12px; }
-      .modal-footer { flex-direction: column-reverse; gap: 8px; }
-      .modal-footer button { width: 100%; }
-      label { font-size: 12px; }
-      input[type=text], input[type=color], textarea, select { font-size: 14px; padding: 10px 12px; }
-      #json-preview { font-size: 11px; max-height: 240px; }
+      .arch-badge, .group-badge {
+        margin-left: 4px; font-size: 9px; padding: 1px 5px;
+      }
+
+      /* Модалка */
+      .modal-backdrop { padding: 12px 8px; align-items: flex-start; }
+      .modal { padding: 16px 14px; max-width: 100%; border-radius: 14px; }
+      .modal h3 { font-size: 15px; margin-bottom: 12px; }
+      .modal-footer { flex-direction: column-reverse; gap: 8px; margin-top: 14px; }
+      .modal-footer button { width: 100%; padding: 11px; font-size: 14px; }
+
+      /* Background mode segmented control — 5 кнопок не вмещаются, ужимаем */
+      .bg-modes { flex-wrap: wrap; gap: 2px; }
+      .bg-mode-btn { font-size: 10px; padding: 6px 4px; flex: 1 1 calc(33% - 4px); }
+
+      /* JSON preview компактнее */
+      pre.json { font-size: 10px; max-height: 200px; padding: 10px; }
+      details summary { font-size: 12px; }
+
+      /* Хинты тоже */
+      .hint { font-size: 11px; line-height: 1.4; }
+
+      /* Toast — чуть меньше */
+      .toast { font-size: 12px; padding: 9px 14px; bottom: 16px; }
     }
   </style>
 </head>
