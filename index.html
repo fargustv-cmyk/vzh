@@ -970,12 +970,13 @@
        фиолетовые, огненные) одной общей таблицей правил. */
     .meteor {
       /* Базовые цвета — по умолчанию синие (default fallback) */
-      --tail-mid:    rgba(150, 200, 255, 0.50);
-      --tail-bright: rgba(230, 240, 255, 0.88);
-      --streak-glow: rgba(140, 200, 255, 0.72);
-      --head-halo1:  rgba(140, 200, 255, 0.85);
-      --head-halo2:  rgba(80, 150, 255, 0.40);
-      --head-halo3:  rgba(60, 120, 255, 0.18);
+      --tail-mid:    rgba(110, 175, 255, 0.65);
+      --tail-bright: rgba(160, 210, 255, 0.95);
+      --tail-tip:    #c8e0ff;
+      --streak-glow: rgba(100, 180, 255, 0.85);
+      --head-halo1:  rgba(120, 190, 255, 0.95);
+      --head-halo2:  rgba(60, 140, 255, 0.55);
+      --head-halo3:  rgba(40, 100, 240, 0.28);
       position: fixed;
       pointer-events: none;
       z-index: 1;
@@ -983,10 +984,10 @@
       height: 2px;
       background: linear-gradient(90deg,
         transparent 0%,
-        rgba(255, 255, 255, 0.08) 15%,
+        rgba(255, 255, 255, 0.10) 18%,
         var(--tail-mid) 55%,
-        var(--tail-bright) 88%,
-        #ffffff 100%);
+        var(--tail-bright) 92%,
+        var(--tail-tip, #ffffff) 100%);
       border-radius: 999px;
       filter: drop-shadow(0 0 3px var(--streak-glow));
       opacity: 0;
@@ -1033,53 +1034,59 @@
        Каждый класс переопределяет 6 CSS-переменных, что меняет цвет
        хвоста, ореола и свечения. Голова остаётся бело-горячей. */
     .meteor.color-white {
-      --tail-mid:    rgba(255, 255, 255, 0.55);
+      --tail-mid:    rgba(255, 255, 255, 0.70);
       --tail-bright: rgba(255, 255, 255, 0.95);
-      --streak-glow: rgba(255, 255, 255, 0.85);
-      --head-halo1:  rgba(255, 255, 255, 0.90);
-      --head-halo2:  rgba(255, 255, 255, 0.45);
-      --head-halo3:  rgba(255, 255, 255, 0.22);
+      --tail-tip:    #ffffff;
+      --streak-glow: rgba(255, 255, 255, 0.90);
+      --head-halo1:  rgba(255, 255, 255, 0.95);
+      --head-halo2:  rgba(255, 255, 255, 0.50);
+      --head-halo3:  rgba(255, 255, 255, 0.25);
     }
     .meteor.color-blue {
-      --tail-mid:    rgba(140, 195, 255, 0.55);
-      --tail-bright: rgba(220, 235, 255, 0.92);
-      --streak-glow: rgba(120, 190, 255, 0.78);
-      --head-halo1:  rgba(120, 190, 255, 0.90);
-      --head-halo2:  rgba(70, 140, 255, 0.45);
-      --head-halo3:  rgba(50, 110, 250, 0.22);
+      --tail-mid:    rgba(80, 160, 255, 0.70);
+      --tail-bright: rgba(140, 200, 255, 0.95);
+      --tail-tip:    #a8d0ff;
+      --streak-glow: rgba(70, 160, 255, 0.90);
+      --head-halo1:  rgba(100, 180, 255, 0.95);
+      --head-halo2:  rgba(50, 130, 255, 0.60);
+      --head-halo3:  rgba(30, 95, 240, 0.30);
     }
     .meteor.color-green {
-      --tail-mid:    rgba(130, 255, 195, 0.55);
-      --tail-bright: rgba(210, 255, 230, 0.92);
-      --streak-glow: rgba(100, 255, 170, 0.78);
-      --head-halo1:  rgba(110, 255, 170, 0.90);
-      --head-halo2:  rgba(60, 220, 130, 0.45);
-      --head-halo3:  rgba(30, 190, 90, 0.22);
+      --tail-mid:    rgba(80, 240, 160, 0.72);
+      --tail-bright: rgba(140, 255, 190, 0.95);
+      --tail-tip:    #a8ffd0;
+      --streak-glow: rgba(70, 250, 150, 0.90);
+      --head-halo1:  rgba(90, 250, 160, 0.95);
+      --head-halo2:  rgba(40, 220, 110, 0.60);
+      --head-halo3:  rgba(20, 180, 70, 0.30);
     }
     .meteor.color-yellow {
-      --tail-mid:    rgba(255, 235, 130, 0.55);
-      --tail-bright: rgba(255, 245, 200, 0.92);
-      --streak-glow: rgba(255, 220, 90, 0.78);
-      --head-halo1:  rgba(255, 215, 80, 0.90);
-      --head-halo2:  rgba(255, 190, 40, 0.45);
-      --head-halo3:  rgba(225, 160, 20, 0.22);
+      --tail-mid:    rgba(255, 220, 80, 0.72);
+      --tail-bright: rgba(255, 240, 150, 0.95);
+      --tail-tip:    #fff0a0;
+      --streak-glow: rgba(255, 210, 60, 0.90);
+      --head-halo1:  rgba(255, 215, 70, 0.95);
+      --head-halo2:  rgba(255, 175, 25, 0.60);
+      --head-halo3:  rgba(230, 145, 10, 0.30);
     }
     .meteor.color-purple {
-      --tail-mid:    rgba(205, 155, 255, 0.55);
-      --tail-bright: rgba(235, 220, 255, 0.92);
-      --streak-glow: rgba(195, 130, 255, 0.78);
-      --head-halo1:  rgba(195, 130, 255, 0.90);
-      --head-halo2:  rgba(155, 80, 235, 0.45);
-      --head-halo3:  rgba(120, 50, 210, 0.22);
+      --tail-mid:    rgba(190, 110, 255, 0.72);
+      --tail-bright: rgba(220, 175, 255, 0.95);
+      --tail-tip:    #d8b8ff;
+      --streak-glow: rgba(180, 90, 255, 0.90);
+      --head-halo1:  rgba(190, 110, 255, 0.95);
+      --head-halo2:  rgba(150, 60, 235, 0.60);
+      --head-halo3:  rgba(115, 30, 210, 0.30);
     }
     /* Огненный — реже, крупнее, тёплый — оставляем отдельным классом */
     .meteor.fireball {
-      --tail-mid:    rgba(255, 195, 130, 0.55);
-      --tail-bright: rgba(255, 230, 180, 0.92);
-      --streak-glow: rgba(255, 180, 100, 0.70);
-      --head-halo1:  rgba(255, 200, 130, 0.85);
-      --head-halo2:  rgba(255, 150, 60, 0.40);
-      --head-halo3:  rgba(255, 120, 40, 0.18);
+      --tail-mid:    rgba(255, 165, 80, 0.72);
+      --tail-bright: rgba(255, 210, 150, 0.95);
+      --tail-tip:    #ffd8a0;
+      --streak-glow: rgba(255, 150, 60, 0.85);
+      --head-halo1:  rgba(255, 180, 90, 0.95);
+      --head-halo2:  rgba(255, 120, 40, 0.55);
+      --head-halo3:  rgba(255, 90, 20, 0.28);
       width: var(--len, 320px);
       height: 3px;
     }
