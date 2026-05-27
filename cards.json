@@ -2,152 +2,83 @@
   "profile": {
     "name": "Yasha Vozhakin",
     "title": "Founder & Creator",
-    "photo": "https://vzh.vercel.app/profile.jpg",
+    "photo": "/profile.jpg",
     "type": "",
-    "tagline": "",
     "about": [
-      { "title": "", "body": "Ideas first. I design systems that feel — tactile, visual, emotional. From tech to retail. I build experiences where clarity meets imagination." },
-      { "title": "Что делаю", "body": "Шесть проектов под зонтом Vozhakin Group — от бренда одежды до планировщика для команд. Каждый — про опыт, не про категорию." },
-      { "title": "Связаться", "body": "Telegram — самый быстрый канал. Пишите, если у идеи есть искра." }
+      {
+        "title": "В первую очередь — идеи.",
+        "body": "\nЯ разрабатываю системы, которые воспринимаются всеми чувствами — на ощупь, зрительно и эмоционально. \nОт технологий до розничной торговли. Я создаю интерфейсы, в которых ясность сочетается с воображением."
+      },
+      {
+        "title": "Что делаю",
+        "body": "Шесть проектов под зонтом Vozhakin Group — от бренда одежды до планировщика для команд. Каждый — про опыт, не про категорию."
+      },
+      {
+        "title": "Связаться",
+        "body": "Telegram — самый быстрый канал. Пишите, если у идеи есть искра."
+      }
     ]
   },
   "projects": [
     {
       "id": "tsoh",
       "name": "TSOH",
-      "type": "Бренд",
       "description": "Two Souls One Heart",
+      "long_description": "Объединяем две души в одно сердце.",
       "logo": "/TSOH_LOGO.png",
       "url": "",
       "accent": "#b48a5b",
-      "background": "",
-      "sections": [
-        { "title": "О проекте",   "body": "Бренд одежды, объединяющий душу и сердце в каждой вещи." },
-        { "title": "Идея",        "body": "Каждая модель рождается из переплетения двух историй — авторской и носителя." },
-        { "title": "Монетизация", "body": "Капсульные коллекции, лимитированные тиражи, прямые продажи через сайт." }
-      ],
-      "links": [
-        { "label": "Сайт", "url": "", "icon": "globe" }
-      ],
-      "cta": { "label": "Открыть проект", "url": "" }
+      "hidden": true
     },
     {
       "id": "cineshift",
       "name": "CineShift",
-      "type": "Производство",
-      "variant": "для физлиц",
-      "group": "cineshift",
-      "description": "Креатив без границ",
+      "description": "За кадром твоего успеха",
+      "long_description": "Производственная компания.",
       "logo": "/CineShift.png",
       "url": "",
       "accent": "#7a5cc9",
-      "background": "",
-      "sections": [
-        { "title": "О направлении", "body": "Производство контента для частных клиентов — клипы, авторские проекты, нестандартные форматы." },
-        { "title": "Идея",          "body": "Сдвиг восприятия в каждом кадре. Снимаем то, что трогает." },
-        { "title": "Стоимость",     "body": "От минимального пакета до полного цикла. Гибкий ценник." }
-      ],
-      "links": [
-        { "label": "Сайт", "url": "", "icon": "globe" }
-      ],
-      "cta": { "label": "Узнать подробнее", "url": "" }
-    },
-    {
-      "id": "cineshift-org",
-      "name": "CineShift.org",
-      "type": "Производство",
-      "variant": "для юрлиц",
-      "group": "cineshift",
-      "description": "Корпоративный продакшн",
-      "logo": "/CineShift.png",
-      "url": "",
-      "accent": "#7a5cc9",
-      "background": "",
-      "sections": [
-        { "title": "О направлении", "body": "Производство для брендов и компаний — рекламные ролики, имиджевые фильмы, корпоративные форматы." },
-        { "title": "Идея",          "body": "Превращаем брифы в контент, который реально работает." },
-        { "title": "Условия",       "body": "Договор, отчётность, портфолио по запросу." }
-      ],
-      "links": [
-        { "label": "Сайт", "url": "", "icon": "globe" }
-      ],
-      "cta": { "label": "Связаться", "url": "" }
+      "hidden": true
     },
     {
       "id": "prodproc",
       "name": "ProdProc",
-      "type": "Сервис",
       "description": "Система. Документы. Результат",
+      "long_description": "Автоматизация продюсерских процессов.",
       "logo": "/ProdProc.png",
       "url": "",
       "accent": "#3b82f6",
-      "background": "",
-      "sections": [
-        { "title": "О проекте",   "body": "Сервис автоматизации продюсерских процессов." },
-        { "title": "Идея",        "body": "Документы, заявки и отчётность — без хаоса и таблиц." },
-        { "title": "Монетизация", "body": "SaaS-подписка для продакшн-команд. Корпоративные тарифы." }
-      ],
-      "links": [
-        { "label": "Сайт", "url": "", "icon": "globe" }
-      ],
-      "cta": { "label": "Попробовать", "url": "" }
+      "hidden": true
     },
     {
       "id": "kenostyle",
       "name": "KenoStyle",
-      "type": "Одежда",
       "description": "Одежда для своих, от своих",
+      "long_description": "Капсульная одежда от команды.",
       "logo": "/keno.png",
       "url": "",
       "accent": "#e76f51",
-      "background": "",
-      "sections": [
-        { "title": "О проекте",   "body": "Капсульная одежда от команды, без претензии и пафоса." },
-        { "title": "Идея",        "body": "Одежда для своих — функциональная, лаконичная, прочная." },
-        { "title": "Монетизация", "body": "Прямые продажи через сайт, дроп-релизы, сотрудничество с дилерами." }
-      ],
-      "links": [
-        { "label": "Сайт", "url": "", "icon": "globe" }
-      ],
-      "cta": { "label": "Купить", "url": "" }
+      "hidden": true
     },
     {
       "id": "kenomedia",
       "name": "KenoMedia",
-      "type": "Медиа",
       "description": "Магия кино в трансляции",
+      "long_description": "Графика и пост-продакшн для прямых эфиров.",
       "logo": "/MEDIA.png",
       "url": "",
       "accent": "#0ea5e9",
-      "background": "",
-      "sections": [
-        { "title": "О проекте",   "body": "Графика и пост-продакшн для прямых эфиров." },
-        { "title": "Идея",        "body": "Добавляем в трансляции то, за что зрители платят в кино." },
-        { "title": "Монетизация", "body": "Услуги для телеканалов, спортивных лиг и стриминговых платформ." }
-      ],
-      "links": [
-        { "label": "Сайт", "url": "", "icon": "globe" }
-      ],
-      "cta": { "label": "Связаться", "url": "" }
+      "hidden": true
     },
     {
       "id": "plansync",
       "name": "PlanSync",
-      "type": "Софт",
       "description": "Ваши планы — в идеальном ритме",
+      "long_description": "Планировщик для команд.",
       "logo": "/PlanSync.png",
       "url": "",
       "accent": "#22c55e",
-      "background": "",
-      "sections": [
-        { "title": "О проекте",   "body": "Планировщик задач и календарь для команд." },
-        { "title": "Идея",        "body": "Все планы команды синхронизируются в один общий ритм." },
-        { "title": "Монетизация", "body": "Freemium SaaS, корпоративные тарифы, интеграции с Google/Outlook." }
-      ],
-      "links": [
-        { "label": "Сайт", "url": "", "icon": "globe" }
-      ],
-      "cta": { "label": "Открыть", "url": "" }
+      "hidden": true
     }
   ],
   "contacts": [
@@ -160,7 +91,7 @@
   ],
   "footer": {
     "brand": "Vozhakin Group",
-    "logo": "https://vzh.vercel.app/vzh.png",
+    "logo": "/vzh.png",
     "year": 2025
   }
 }
