@@ -81,43 +81,6 @@
       "hidden": true
     },
     {
-      "id": "afford",
-      "name": "afford.today",
-      "type": "Сервис",
-      "description": "твоё личное «можно»",
-      "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSI+CiAgPHBhdGggZD0iTTMyIDU2cy0yMi0xMy42LTIyLTMwYTEzIDEzIDAgMCAxIDIyLTkuNEExMyAxMyAwIDAgMSA1NCAyNmMwIDE2LjQtMjIgMzAtMjIgMzB6IgogICAgICAgIHN0cm9rZT0iIzZiM2ExYSIgc3Ryb2tlLXdpZHRoPSI0LjUiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9IiM2YjNhMWEiIGZpbGwtb3BhY2l0eT0iMC4xMCIvPgogIDxwYXRoIGQ9Ik0yMiAzMGw3IDcgMTMtMTUiIHN0cm9rZT0iIzZiM2ExYSIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9Im5vbmUiLz4KPC9zdmc+",
-      "url": "https://t.me/afford_today_bot",
-      "accent": "#EFD3AC",
-      "sections": [
-        {
-          "title": "О проекте",
-          "body": "Telegram Mini App, который помогает взрослым тратить на себя без вины: список «хочу», шаги-позволения и шаги-труд, карта свободы и моменты «Можно!»."
-        },
-        {
-          "title": "Идея",
-          "body": "Многие умеют зарабатывать и не умеют тратить на себя. Закрывает узкий эмоциональный пейн «разреши себе» — между терапией, бюджетниками и трекерами привычек."
-        },
-        {
-          "title": "Монетизация",
-          "body": "Free: список «хочу», шаги, карта свободы.\n\nPro (разово, навсегда — 100 ⭐ через Telegram Stars):\n• несколько вишлистов\n• 4 тематических пакета шагов\n• избранные шаги\n• карта свободы Pro\n• темы оформления"
-        }
-      ],
-      "links": [
-        {
-          "label": "Telegram",
-          "url": "https://t.me/afford_today_bot",
-          "icon": "telegram"
-        }
-      ],
-      "directions": [],
-      "cta": {
-        "label": "Открыть бота",
-        "url": "https://t.me/afford_today_bot"
-      },
-      "hidden": false,
-      "background": "radial-gradient(circle at 50% -10%, #FFF8EC 0%, #F6E3C5 52%, #EFD3AC 100%)"
-    },
-    {
       "id": "p_87fo6th",
       "name": "Converter++",
       "type": "Telegram mini app",
@@ -149,6 +112,39 @@
         "url": ""
       },
       "hidden": false
+    },
+    {
+      "id": "afford",
+      "name": "afford.today",
+      "type": "Сервис",
+      "description": "твоё личное «можно»",
+      "logo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSI+CiAgPHBhdGggZD0iTTMyIDU2cy0yMi0xMy42LTIyLTMwYTEzIDEzIDAgMCAxIDIyLTkuNEExMyAxMyAwIDAgMSA1NCAyNmMwIDE2LjQtMjIgMzAtMjIgMzB6IgogICAgICAgIHN0cm9rZT0iIzZiM2ExYSIgc3Ryb2tlLXdpZHRoPSI0LjUiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9IiM2YjNhMWEiIGZpbGwtb3BhY2l0eT0iMC4xMCIvPgogIDxwYXRoIGQ9Ik0yMiAzMGw3IDcgMTMtMTUiIHN0cm9rZT0iIzZiM2ExYSIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9Im5vbmUiLz4KPC9zdmc+",
+      "url": "https://t.me/afford_today_bot",
+      "accent": "#efd3ac",
+      "sections": [
+        {
+          "title": "О проекте",
+          "body": "Telegram Mini App, который помогает взрослым тратить на себя без вины: список «хочу», шаги-позволения и шаги-труд, карта свободы и моменты «Можно!»."
+        },
+        {
+          "title": "Идея",
+          "body": "Многие умеют зарабатывать и не умеют тратить на себя. Закрывает узкий эмоциональный пейн «разреши себе» — между терапией, бюджетниками и трекерами привычек."
+        },
+        {
+          "title": "Монетизация",
+          "body": "Free: список «хочу», шаги, карта свободы.\n\nPro (разово, навсегда — 100 ⭐ через Telegram Stars):\n• несколько вишлистов\n• 4 тематических пакета шагов\n• избранные шаги\n• карта свободы Pro\n• темы оформления"
+        }
+      ],
+      "links": [],
+      "directions": [],
+      "cta": {
+        "label": "Открыть бота",
+        "url": "https://t.me/afford_today_bot"
+      },
+      "hidden": false,
+      "background": "radial-gradient(circle at 50% -10%, #FFF8EC 0%, #F6E3C5 52%, #EFD3AC 100%)",
+      "variant": "",
+      "group": ""
     }
   ],
   "contacts": [
