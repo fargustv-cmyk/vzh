@@ -662,7 +662,8 @@
     }
 
     const STORAGE_KEY = 'vozhakin_cards_v3';
-    const SYNC_KEY    = 'vozhakin_cards_v3_synced';   // timestamp of last server sync
+    const SYNC_KEY    = 'vozhakin_cards_v3_synced';            // timestamp of last server sync
+    const SYNCED_SNAPSHOT_KEY = 'vozhakin_cards_v3_synced_data'; // полный снимок состояния при последней синхронизации (для диффа dirty/clean)
 
     /* Mirrors index.html's gradientFor — used for "Auto" background preview */
     function gradientForPreview(hex) {
@@ -843,7 +844,10 @@
     }
 
     function markSynced() {
-      try { localStorage.setItem(SYNC_KEY, Date.now().toString()); } catch (e) {}
+      try {
+        localStorage.setItem(SYNC_KEY, Date.now().toString());
+        localStorage.setItem(SYNCED_SNAPSHOT_KEY, JSON.stringify(state));
+      } catch (e) {}
       isDirty = false;
       updateSyncBadge();
     }
@@ -883,33 +887,87 @@
       return data;
     }
 
-    /* На старте: если в localStorage есть локальные правки — грузим их,
-       иначе тянем свежий cards.json с сайта. */
+    /* На старте:
+       1. Если в localStorage есть локальные правки — грузим их.
+       2. Параллельно фетчим cards.json с сайта.
+       3. Если локальное состояние ИДЕНТИЧНО последнему синхронизированному
+          снимку (т.е. пользователь ничего не правил после последнего push),
+          а сервер изменился — автоматически перезагружаемся с сервера.
+       4. Если локально есть правки — оставляем их, но если на сервере
+          появились НОВЫЕ проекты (по id), которых нет у нас — спрашиваем
+          подмерджить (чтобы не потерять локальные правки). */
     async function bootLoad() {
-      const localRaw = localStorage.getItem(STORAGE_KEY);
+      const localRaw  = localStorage.getItem(STORAGE_KEY);
+      const syncedRaw = localStorage.getItem(SYNCED_SNAPSHOT_KEY);
+
       if (localRaw) {
         try {
           state = JSON.parse(localRaw);
-          // Если synced-timestamp есть и localStorage не менялся после него —
-          // считаем что данные синхронизированы. Иначе — есть dirty правки.
-          const syncTs = parseInt(localStorage.getItem(SYNC_KEY) || '0', 10);
-          isDirty = syncTs === 0;   // если ни разу не синкали — считаем dirty
+          isDirty = (syncedRaw === null) ? true : (localRaw !== syncedRaw);
           renderAll();
           updateSyncBadge();
-          return;
-        } catch (e) { /* fallback ниже */ }
+        } catch (e) {
+          state = structuredClone(DEFAULT);
+          renderAll();
+        }
       }
-      // localStorage пустой — пробуем подгрузить с сайта
-      try {
-        state = await fetchServerState();
+
+      // Параллельно подтянем сервер. Если сервер обновился — синкаемся.
+      let serverState = null;
+      try { serverState = await fetchServerState(); } catch (_) {}
+      if (!serverState) {
+        if (!localRaw) {
+          state = structuredClone(DEFAULT);
+          renderAll();
+          toast('Не удалось загрузить с сайта, использую дефолт');
+        }
+        return;
+      }
+      const serverStr = JSON.stringify(serverState);
+
+      // Случай 1: вообще не было локальных данных
+      if (!localRaw) {
+        state = serverState;
         persistLocal();
         markSynced();
         renderAll();
         toast('Загружено с сайта');
-      } catch (e) {
-        state = structuredClone(DEFAULT);
+        return;
+      }
+
+      // Случай 2: локально чисто (нет dirty правок) — берём сервер если он отличается
+      if (!isDirty && serverStr !== syncedRaw) {
+        state = serverState;
+        persistLocal();
+        markSynced();
         renderAll();
-        toast('Не удалось загрузить с сайта, использую дефолт: ' + e.message);
+        toast('Автообновлено с сайта (актуальная версия)');
+        return;
+      }
+
+      // Случай 3: локально dirty + на сервере появились новые проекты — спросим домерджить
+      if (isDirty && serverStr !== syncedRaw) {
+        try {
+          const localIds  = new Set(state.projects.map(p => p.id));
+          const serverIds = new Set(serverState.projects.map(p => p.id));
+          const newOnServer = serverState.projects.filter(p => !localIds.has(p.id));
+          if (newOnServer.length > 0) {
+            const names = newOnServer.map(p => '«' + (p.name || p.id) + '»').join(', ');
+            const ok = confirm(
+              'На сайте появились новые карточки, которых нет в вашей локальной версии:\n' +
+              names + '\n\n' +
+              'Подтянуть их в локальную версию? (ваши несохранённые правки сохранятся, добавятся только новые проекты с сайта)'
+            );
+            if (ok) {
+              // Мерж: добавим новые серверные проекты в конец локальных
+              state.projects = state.projects.concat(newOnServer);
+              persistLocal();
+              setDirty();
+              renderAll();
+              toast('Добавлено новых: ' + newOnServer.length);
+            }
+          }
+        } catch (_) {}
       }
     }
 
