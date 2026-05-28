@@ -115,7 +115,7 @@
         "url": "https://t.me/afford_today_bot"
       },
       "hidden": false,
-      "background": "linear-gradient(180deg, #FFF8EC 0%, #F6E3C5 52%, #EFD3AC 100%)"
+      "background": "radial-gradient(circle at 50% -10%, #FFF8EC 0%, #F6E3C5 52%, #EFD3AC 100%)"
     },
     {
       "id": "p_87fo6th",
