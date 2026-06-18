@@ -81,6 +81,45 @@
       "hidden": true
     },
     {
+      "id": "thewall",
+      "name": "The Wall",
+      "type": "Telegram bot",
+      "variant": "",
+      "group": "",
+      "description": "Все каналы — в одной ленте за 24 часа",
+      "logo": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDEyMCAxMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiIHJ4PSIyOCIgZmlsbD0iIzAwMCIvPjxyZWN0IHg9IjQyIiB5PSIyMiIgd2lkdGg9IjU4IiBoZWlnaHQ9IjcyIiByeD0iMTIiIGZpbGw9IiNmZmYiIG9wYWNpdHk9IjAuMzAiLz48cmVjdCB4PSIyMCIgeT0iMzQiIHdpZHRoPSI1OCIgaGVpZ2h0PSI3MiIgcng9IjEyIiBmaWxsPSIjZmZmIi8+PGNpcmNsZSBjeD0iMzQiIGN5PSI1MSIgcj0iNyIgZmlsbD0iIzAwMCIvPjxyZWN0IHg9IjQ2IiB5PSI0NSIgd2lkdGg9IjI0IiBoZWlnaHQ9IjUiIHJ4PSIyLjUiIGZpbGw9IiMwMDAiLz48cmVjdCB4PSI0NiIgeT0iNTUiIHdpZHRoPSIxNiIgaGVpZ2h0PSI0IiByeD0iMiIgZmlsbD0iIzlhOWE5YSIvPjxyZWN0IHg9IjMwIiB5PSI3MiIgd2lkdGg9IjM4IiBoZWlnaHQ9IjQiIHJ4PSIyIiBmaWxsPSIjZDRkNGQ0Ii8+PHJlY3QgeD0iMzAiIHk9IjgxIiB3aWR0aD0iMzAiIGhlaWdodD0iNCIgcng9IjIiIGZpbGw9IiNkNGQ0ZDQiLz48cG9seWdvbiBwb2ludHM9Ijg2LDEwMCAxMTIsODAgMTAwLDEwNiA5Niw5OCIgZmlsbD0iI2ZmZiIvPjxwb2x5Z29uIHBvaW50cz0iMTAwLDEwNiAxMTIsODAgOTYsOTgiIGZpbGw9IiNmZmYiIG9wYWNpdHk9IjAuNiIvPjwvc3ZnPg==",
+      "url": "https://t.me/thewalltelega_bot",
+      "accent": "#0a0a0c",
+      "background": "",
+      "sections": [
+        {
+          "title": "О проекте",
+          "body": "Все каналы, на которые ты подписался у нас, — в одной ленте за 24 часа. Один экран, одна лента, без переключения между чатами и тревожной точки непрочитанного."
+        },
+        {
+          "title": "Идея",
+          "body": "Пейн информационной перегрузки: десятки каналов, рассеянное внимание, FOMO. The Wall схлопывает поток в обозримый дайджест за сутки — то что важно, а не то что вчера громко."
+        },
+        {
+          "title": "Монетизация",
+          "body": "Использование приложения — бесплатно.\n\n⭐ 500 звёзд — за подключение своего авторского канала (свой контент в ленте).\n\n⭐ 100 звёзд — за каждый добавленный канал (любой чужой канал/группу, которую хочешь видеть в своей ленте, — «зеркало»).\n\nОплата через Telegram Stars."
+        }
+      ],
+      "links": [
+        {
+          "label": "Telegram",
+          "url": "https://t.me/thewalltelega_bot",
+          "icon": "telegram"
+        }
+      ],
+      "directions": [],
+      "cta": {
+        "label": "Открыть бота",
+        "url": "https://t.me/thewalltelega_bot"
+      },
+      "hidden": false
+    },
+    {
       "id": "afford",
       "name": "afford.today",
       "type": "Сервис",
