@@ -1057,7 +1057,7 @@
       const m = state.motion;
       const enabled = m.enabled !== false;
       card.style.transform = enabled
-        ? `translate3d(0, ${-(Number(m.extractLift) || 0) * .35}px, 18px) scale(${Number(m.extractScale) || 1})`
+        ? `translateY(${-(Number(m.extractLift) || 0) * .35}px) scale(${Number(m.extractScale) || 1})`
         : 'none';
       card.style.boxShadow = enabled ? '0 28px 54px rgba(0,0,0,.5)' : '0 12px 26px rgba(0,0,0,.34)';
       glare.style.opacity = enabled ? String(Number(m.glare) || 0) : '0';

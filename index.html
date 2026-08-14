@@ -315,7 +315,6 @@
     /* iOS spring: cubic-bezier(.32,.72,0,1) — used everywhere for parity. */
     .card {
       --state-y: 0px;
-      --state-z: 0px;
       --state-scale: 1;
       position: absolute;
       left: 0; right: 0;
@@ -342,7 +341,7 @@
       border-radius: inherit;
       transform-style: preserve-3d;
       transform:
-        translate3d(0, var(--state-y), var(--state-z))
+        translateY(var(--state-y))
         scale(var(--state-scale));
       transform-origin: 50% 78%;
       transition:
@@ -352,7 +351,6 @@
     }
     .card.is-extracted {
       --state-y: var(--motion-extract-y, -16px);
-      --state-z: var(--motion-extract-z, 34px);
       --state-scale: var(--motion-extract-scale, 1.018);
     }
     .card-inner {
@@ -379,6 +377,7 @@
          на front в некоторых браузерах (Safari, старый Firefox) обратная сторона
          «протекает» через лицевую — видны зеркальные логотип/название. */
       transform: translateZ(0);
+      isolation: isolate;
       color: var(--card-text, #fffaff);
       display: flex;
       flex-direction: column;
@@ -393,7 +392,12 @@
     /* Front с явной нулевой ротацией = тот же 3D-контекст, что и back.
        Без этого front может оказаться в плоском контексте, и при повороте
        card-inner на -180° front покажется зеркально. */
-    .face.front { transform: rotateY(0deg) translateZ(0); }
+    .face.front {
+      transform: rotateY(0deg) translateZ(.5px);
+      background: var(--card-bg, linear-gradient(165deg, #555, #222));
+      background-size: cover;
+      background-position: center;
+    }
     /* Active = карта поднята из стопки лицом вверх (перед переворотом).
        Тень чуть глубже, чем у peek, но мягче, чем у flipped — даёт визуально
        понять, что карта «выбрана» и следующий тап её перевернёт. */
@@ -436,6 +440,8 @@
       background-size: cover;
       background-position: center;
       z-index: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
     }
     /* Specular sheen — always on. Mimics polished glass catching overhead
        light: a radial highlight near the top and a soft white wash on the
@@ -500,7 +506,7 @@
       padding: 16px 18px 18px;
     }
     .back {
-      transform: rotateY(-180deg) translateZ(0);
+      transform: rotateY(-180deg) translateZ(.5px);
       background: var(--card-back-bg,
         radial-gradient(120% 80% at 24% 0%, rgba(151,126,213,0.18) 0%, transparent 55%),
         linear-gradient(160deg, #211e2b 0%, #0d0a15 72%, #08060e 100%));
@@ -1411,7 +1417,6 @@
       const extractLift = enabled ? clampNumber(motionSettings.extractLift, 0, 36, 16) : 0;
       root.style.setProperty('--motion-extract-y', `${-extractLift}px`);
       root.style.setProperty('--motion-profile-y', `${-(extractLift * .55)}px`);
-      root.style.setProperty('--motion-extract-z', enabled ? '34px' : '0px');
       root.style.setProperty('--motion-profile-z', enabled ? '22px' : '0px');
       root.style.setProperty('--motion-profile-scale', enabled ? '1.008' : '1');
       root.style.setProperty('--motion-extract-scale', String(enabled ? clampNumber(motionSettings.extractScale, 1, 1.06, 1.018) : 1));
