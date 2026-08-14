@@ -39,6 +39,7 @@
       -webkit-font-smoothing: antialiased;
       min-height: 100%;
     }
+    html { scrollbar-gutter: stable; }
     body {
       min-height: 100vh;
       /* Дополнительные 28px сверху, чтобы профиль не «прилипал» к шапке
@@ -333,20 +334,31 @@
       cursor: pointer;
       perspective: 1600px;
       transform-style: preserve-3d;
-      transform:
-        translate3d(var(--cursor-x), calc(var(--state-y) + var(--cursor-y)), var(--state-z))
-        rotateX(var(--pointer-rx)) rotateY(var(--pointer-ry))
-        scale(var(--state-scale));
-      transform-origin: 50% 78%;
-      will-change: top, height, transform;
+      will-change: top, height;
     }
     /* Transitions only after first layout pass. */
     .card.ready {
       transition:
         top var(--motion-spring-ms, 620ms) cubic-bezier(.22,.9,.25,1),
-        height var(--motion-spring-ms, 620ms) cubic-bezier(.22,.9,.25,1),
+        height var(--motion-spring-ms, 620ms) cubic-bezier(.22,.9,.25,1);
+    }
+    /* The stack geometry and hit area stay fixed on .card. Only this visual
+       layer moves, so a tilt can never hand the pointer to a neighbouring card. */
+    .card-motion {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      transform-style: preserve-3d;
+      transform:
+        translate3d(var(--cursor-x), calc(var(--state-y) + var(--cursor-y)), var(--state-z))
+        rotateX(var(--pointer-rx)) rotateY(var(--pointer-ry))
+        scale(var(--state-scale));
+      transform-origin: 50% 78%;
+      transition:
         transform var(--motion-spring-ms, 620ms) cubic-bezier(.22,1.18,.36,1),
         filter 180ms ease;
+      will-change: transform;
     }
     .card.is-extracted {
       --state-y: var(--motion-extract-y, -16px);
@@ -356,12 +368,18 @@
     .card.is-pressed,
     .profile-card.is-pressed {
       --state-scale: .994;
+    }
+    .card.is-pressed .card-motion,
+    .profile-card.is-pressed {
       filter: brightness(1.035);
     }
     .card.is-pointer-tracking {
       transition:
         top var(--motion-spring-ms, 620ms) cubic-bezier(.22,.9,.25,1),
-        height var(--motion-spring-ms, 620ms) cubic-bezier(.22,.9,.25,1),
+        height var(--motion-spring-ms, 620ms) cubic-bezier(.22,.9,.25,1);
+    }
+    .card.is-pointer-tracking .card-motion {
+      transition:
         transform 120ms cubic-bezier(.2,.7,.2,1),
         filter 180ms ease;
     }
@@ -492,7 +510,7 @@
     }
 
     @media (hover: hover) and (pointer: fine) {
-      html[data-motion="on"] .card.ready:not(.is-extracted):hover {
+      html[data-motion="on"] .card.ready.is-active:not(.is-extracted):hover {
         --state-y: var(--motion-hover-y, -6px);
         --state-z: 14px;
         --state-scale: 1.006;
@@ -1479,9 +1497,11 @@
         clearTimeout(leaveTimer);
         leaveTimer = window.setTimeout(() => card.classList.remove('is-pointer-tracking'), 150);
       };
+      card._resetPhysicalMotion = reset;
 
       card.addEventListener('pointermove', event => {
         if (!finePointer.matches || reducedMotion.matches || motionSettings.enabled === false || event.pointerType === 'touch') return;
+        if (card.classList.contains('card') && !card.classList.contains('is-active') && !card.classList.contains('is-flipped')) return;
         latestEvent = event;
         if (frame) return;
         frame = requestAnimationFrame(() => {
@@ -1505,7 +1525,8 @@
       card.addEventListener('pointerleave', reset);
       card.addEventListener('pointercancel', reset);
       card.addEventListener('pointerdown', event => {
-        if (event.pointerType !== 'touch' && motionSettings.enabled !== false) card.classList.add('is-pressed');
+        const canPress = !card.classList.contains('card') || card.classList.contains('is-active') || card.classList.contains('is-flipped');
+        if (canPress && event.pointerType !== 'touch' && motionSettings.enabled !== false) card.classList.add('is-pressed');
       });
       card.addEventListener('pointerup', () => card.classList.remove('is-pressed'));
     }
@@ -1901,6 +1922,7 @@
       const hasUrl = !!project.url;
 
       card.innerHTML = `
+        <div class="card-motion">
         <div class="card-inner">
           <div class="face front">
             <div class="bg-layer"></div>
@@ -1943,6 +1965,7 @@
           <button type="button" class="card-nav prev" data-variant-nav="prev" aria-label="Предыдущая сестра" aria-disabled="${(project._siblingIdx || 0) === 0}">${ICON_CHEVRON_LEFT}</button>
           <button type="button" class="card-nav next" data-variant-nav="next" aria-label="Следующая сестра" aria-disabled="${(project._siblingIdx || 0) === project._siblings.length - 1}">${ICON_CHEVRON_RIGHT}</button>
         ` : ''}
+        </div>
       `;
 
       bindPhysicalMotion(card);
@@ -2030,6 +2053,7 @@
           card.classList.toggle('is-flipped', cardIsFlipped);
           card.classList.toggle('is-active', isActive && !cardIsFlipped);
           card.classList.toggle('is-extracted', isExplicit);
+          if (!isActive && typeof card._resetPhysicalMotion === 'function') card._resetPhysicalMotion();
           card.setAttribute('aria-hidden', 'false');
 
           // Layout advance:
