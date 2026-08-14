@@ -584,6 +584,35 @@
       <p class="hint">Секции, которые видны когда тапнуть на плашку профиля. Первую можно оставить без заголовка — будет манифестом-открывашкой.</p>
     </section>
 
+    <!-- MOTION -->
+    <section class="section">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:14px;">
+        <div>
+          <h2 style="margin:0 0 4px;">Движение карточек</h2>
+          <p class="hint" style="margin:0;">Общая физика подъёма, переворота и реакции на курсор.</p>
+        </div>
+        <label style="display:flex; align-items:center; gap:8px; margin:0; white-space:nowrap;">
+          <input id="motion-enabled" type="checkbox" style="width:auto;" /> Включено
+        </label>
+      </div>
+      <div class="grid-2">
+        <div id="motion-preview" style="grid-column:1 / -1; min-height:150px; display:grid; place-items:center; border:0.5px solid var(--border); border-radius:14px; background:radial-gradient(circle at 50% 20%,rgba(122,92,201,.18),transparent 52%),#0d0b13; overflow:hidden; perspective:900px;">
+          <div id="motion-preview-card" style="width:min(280px,72%);height:108px;border-radius:16px;background:linear-gradient(155deg,#4935b7,#1c153d);box-shadow:0 24px 50px rgba(0,0,0,.45);display:flex;align-items:flex-end;padding:16px;color:#fff;transition:transform 120ms ease,box-shadow 180ms ease;transform-style:preserve-3d;position:relative;overflow:hidden;">
+            <span style="position:relative;z-index:2;font-size:13px;font-weight:600;">Проведи курсором</span>
+            <span id="motion-preview-glare" style="position:absolute;inset:0;background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.58),transparent 45%);opacity:.22;mix-blend-mode:soft-light;pointer-events:none;"></span>
+          </div>
+        </div>
+        <div><label>Наклон за курсором · <span id="motion-cursorTilt-value"></span>°</label><input id="motion-cursorTilt" type="range" min="0" max="12" step="0.5" /></div>
+        <div><label>Сдвиг за курсором · <span id="motion-cursorShift-value"></span> px</label><input id="motion-cursorShift" type="range" min="0" max="10" step="0.5" /></div>
+        <div><label>Подъём при наведении · <span id="motion-hoverLift-value"></span> px</label><input id="motion-hoverLift" type="range" min="0" max="20" step="1" /></div>
+        <div><label>Подъём из стопки · <span id="motion-extractLift-value"></span> px</label><input id="motion-extractLift" type="range" min="0" max="36" step="1" /></div>
+        <div><label>Масштаб вынутой карты · <span id="motion-extractScale-value"></span></label><input id="motion-extractScale" type="range" min="1" max="1.06" step="0.001" /></div>
+        <div><label>Сила блика · <span id="motion-glare-value"></span></label><input id="motion-glare" type="range" min="0" max="0.5" step="0.01" /></div>
+        <div><label>Скорость переворота · <span id="motion-flipDuration-value"></span> мс</label><input id="motion-flipDuration" type="range" min="240" max="1400" step="20" /></div>
+        <div><label>Инерция подъёма · <span id="motion-springDuration-value"></span> мс</label><input id="motion-springDuration" type="range" min="240" max="1400" step="20" /></div>
+      </div>
+    </section>
+
     <!-- PROJECTS -->
     <section class="section">
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:8px;">
@@ -689,6 +718,17 @@
     }
 
     const DEFAULT = {
+      motion: {
+        enabled: true,
+        cursorTilt: 6.5,
+        cursorShift: 4,
+        hoverLift: 6,
+        extractLift: 16,
+        extractScale: 1.018,
+        flipDuration: 760,
+        springDuration: 620,
+        glare: 0.22
+      },
       profile: {
         name: 'Yasha Vozhakin',
         title: 'Founder & Creator',
@@ -1002,6 +1042,83 @@
       toast._t = setTimeout(() => el.classList.remove('show'), 1800);
     }
 
+    /* ----- Render: motion ----- */
+    const MOTION_FIELDS = [
+      'cursorTilt', 'cursorShift', 'hoverLift', 'extractLift',
+      'extractScale', 'glare', 'flipDuration', 'springDuration'
+    ];
+
+    function ensureMotionState() {
+      state.motion = { ...DEFAULT.motion, ...((state.motion && typeof state.motion === 'object') ? state.motion : {}) };
+    }
+
+    function renderMotionPreview() {
+      ensureMotionState();
+      const card = document.getElementById('motion-preview-card');
+      const glare = document.getElementById('motion-preview-glare');
+      if (!card || !glare) return;
+      const m = state.motion;
+      const enabled = m.enabled !== false;
+      card.style.transform = enabled
+        ? `translate3d(0, ${-(Number(m.hoverLift) || 0) * .55}px, 18px) rotateX(-2deg) rotateY(3deg) scale(${Number(m.extractScale) || 1})`
+        : 'none';
+      card.style.boxShadow = enabled ? '0 28px 54px rgba(0,0,0,.5)' : '0 12px 26px rgba(0,0,0,.34)';
+      glare.style.opacity = enabled ? String(Number(m.glare) || 0) : '0';
+    }
+
+    function renderMotion() {
+      ensureMotionState();
+      document.getElementById('motion-enabled').checked = state.motion.enabled !== false;
+      MOTION_FIELDS.forEach(key => {
+        const input = document.getElementById('motion-' + key);
+        const value = document.getElementById('motion-' + key + '-value');
+        if (!input) return;
+        input.value = state.motion[key];
+        input.disabled = state.motion.enabled === false;
+        if (value) value.textContent = key === 'extractScale'
+          ? Number(state.motion[key]).toFixed(3)
+          : String(state.motion[key]);
+      });
+      renderMotionPreview();
+    }
+
+    document.getElementById('motion-enabled').addEventListener('change', event => {
+      ensureMotionState();
+      state.motion.enabled = event.target.checked;
+      persistLocal();
+      setDirty();
+      renderMotion();
+      renderJsonPreview();
+    });
+    MOTION_FIELDS.forEach(key => {
+      document.getElementById('motion-' + key).addEventListener('input', event => {
+        ensureMotionState();
+        state.motion[key] = Number(event.target.value);
+        const value = document.getElementById('motion-' + key + '-value');
+        if (value) value.textContent = key === 'extractScale'
+          ? state.motion[key].toFixed(3)
+          : String(state.motion[key]);
+        persistLocal();
+        setDirty();
+        renderMotionPreview();
+        renderJsonPreview();
+      });
+    });
+    document.getElementById('motion-preview-card').addEventListener('pointermove', event => {
+      ensureMotionState();
+      if (state.motion.enabled === false || event.pointerType === 'touch') return;
+      const card = event.currentTarget;
+      const rect = card.getBoundingClientRect();
+      const nx = Math.max(-1, Math.min(1, ((event.clientX - rect.left) / rect.width - .5) * 2));
+      const ny = Math.max(-1, Math.min(1, ((event.clientY - rect.top) / rect.height - .5) * 2));
+      const tilt = Number(state.motion.cursorTilt) || 0;
+      const shift = Number(state.motion.cursorShift) || 0;
+      card.style.transform = `translate3d(${nx * shift}px, ${-(Number(state.motion.hoverLift) || 0) + ny * shift * .6}px, 22px) rotateX(${-ny * tilt}deg) rotateY(${nx * tilt}deg) scale(${Number(state.motion.extractScale) || 1})`;
+      const glare = document.getElementById('motion-preview-glare');
+      glare.style.background = `radial-gradient(circle at ${50 + nx * 34}% ${42 + ny * 32}%,rgba(255,255,255,.62),transparent 45%)`;
+    });
+    document.getElementById('motion-preview-card').addEventListener('pointerleave', renderMotionPreview);
+
     /* ----- Render: profile / footer ----- */
     function renderProfile() {
       document.getElementById('p-name').value = state.profile.name || '';
@@ -1192,6 +1309,29 @@
         return `background-image: url("${s.replace(/"/g,'\\"')}"); background-size: cover; background-position: center;`;
       }
 
+      function paletteDefaultsFor(project) {
+        const id = String(project.id || '').toLowerCase();
+        if (id === 'afford') return {
+          frontText: '#573319', frontMuted: '#8b5b34',
+          backBackground: 'radial-gradient(circle at 50% -12%, #fffaf0 0%, #efd5af 58%, #ddb17e 100%)',
+          backText: '#573319', backMuted: '#8b5b34', backSubtle: '#6f4728',
+          backCtaBackground: '#573319', backCtaText: '#fff8ed'
+        };
+        if (id === 'p_87fo6th') return {
+          frontText: '#ffffff', frontMuted: '#c8d7ff',
+          backBackground: 'radial-gradient(circle at 84% 0%, rgba(97,116,255,0.48) 0%, transparent 42%), linear-gradient(160deg, #153b9f 0%, #242166 58%, #25133f 100%)',
+          backText: '#ffffff', backMuted: '#aebdff', backSubtle: '#d6dcff',
+          backCtaBackground: '#ffffff', backCtaText: '#151329'
+        };
+        return {
+          frontText: '#fffaff', frontMuted: '#b9b0ca',
+          backBackground: 'radial-gradient(circle at 88% 0%, #34323f 0%, #17151f 34%, #0d0a15 100%)',
+          backText: '#fffaff', backMuted: '#948aa7', backSubtle: '#c2b9d2',
+          backCtaBackground: '#fffaff', backCtaText: '#0a0a0e'
+        };
+      }
+      const palette = { ...paletteDefaultsFor(p), ...((p.palette && typeof p.palette === 'object') ? p.palette : {}) };
+
       document.getElementById('modal-body').innerHTML = `
         <div class="grid-2">
           <div>
@@ -1306,6 +1446,28 @@
             <label>Акцент (запасной цвет, если фон не задан)</label>
             <input id="m-accent" type="color" value="${p.accent || '#b48a5b'}" />
           </div>
+          <div style="grid-column:1 / -1; padding-top:14px; border-top:0.5px solid var(--border);">
+            <label style="font-size:13px;">Палитра лицевой и оборотной стороны</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 12px;">
+              <div id="palette-front-preview" style="height:96px;border-radius:12px;padding:12px;display:flex;flex-direction:column;justify-content:flex-end;box-shadow:0 12px 28px rgba(0,0,0,.25);">
+                <strong style="font-size:13px;">${escapeHtml(p.name || 'Карточка')}</strong><span style="font-size:11px;margin-top:3px;">Лицевая сторона</span>
+              </div>
+              <div id="palette-back-preview" style="height:96px;border-radius:12px;padding:12px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 12px 28px rgba(0,0,0,.25);">
+                <strong style="font-size:13px;">О проекте</strong><span id="palette-back-button" style="align-self:flex-start;padding:5px 9px;border-radius:999px;font-size:10px;">Перейти</span>
+              </div>
+            </div>
+            <div class="grid-2">
+              <div><label>Текст спереди</label><input id="m-front-text" type="color" value="${palette.frontText}" /></div>
+              <div><label>Вторичный текст спереди</label><input id="m-front-muted" type="color" value="${palette.frontMuted}" /></div>
+              <div><label>Текст на обороте</label><input id="m-back-text" type="color" value="${palette.backText}" /></div>
+              <div><label>Вторичный текст на обороте</label><input id="m-back-muted" type="color" value="${palette.backMuted}" /></div>
+              <div><label>Подписи на обороте</label><input id="m-back-subtle" type="color" value="${palette.backSubtle}" /></div>
+              <div><label>Фон кнопки</label><input id="m-back-cta-bg" type="color" value="${palette.backCtaBackground}" /></div>
+              <div><label>Текст кнопки</label><input id="m-back-cta-text" type="color" value="${palette.backCtaText}" /></div>
+              <div style="grid-column:1 / -1;"><label>Фон оборота (цвет или CSS-градиент)</label><input id="m-back-background" type="text" value="${escapeAttr(palette.backBackground)}" /></div>
+            </div>
+            <p class="hint">Фон лицевой стороны задаётся блоком «Внешний вид карты» выше. Здесь управляются шрифты и отдельный фон оборота.</p>
+          </div>
         </div>
       `;
       m.classList.add('open');
@@ -1350,6 +1512,7 @@
         else if (curBgMode === 'gradient') p.background = buildGradient(gradAngle.value, gradTop.value, gradBot.value);
         else if (curBgMode === 'glass') p.background = 'glass';
         refreshBgPreview();
+        refreshPalettePreview();
       }
       function setBgMode(mode) {
         curBgMode = mode;
@@ -1398,6 +1561,34 @@
         p.accent = e.target.value;
         if (curBgMode === 'auto' || curBgMode === 'glass') refreshBgPreview();
       });
+
+      // ----- Front/back palette preview -----
+      const paletteInputIds = [
+        'm-front-text', 'm-front-muted', 'm-back-text', 'm-back-muted',
+        'm-back-subtle', 'm-back-cta-bg', 'm-back-cta-text', 'm-back-background'
+      ];
+      function refreshPalettePreview() {
+        const front = document.getElementById('palette-front-preview');
+        const back = document.getElementById('palette-back-preview');
+        const button = document.getElementById('palette-back-button');
+        const bg = String(p.background || '').trim();
+        front.style.background = !bg
+          ? gradientForPreview(p.accent || '#b48a5b')
+          : bg === 'glass'
+            ? glassPreview(p.accent || '#b48a5b')
+            : /^(linear-gradient|radial-gradient|conic-gradient|#|rgb\(|hsl\()/i.test(bg)
+              ? bg
+              : `url("${bg.replace(/"/g, '\\"')}") center / cover no-repeat`;
+        front.style.color = document.getElementById('m-front-text').value;
+        front.querySelector('span').style.color = document.getElementById('m-front-muted').value;
+        back.style.background = document.getElementById('m-back-background').value;
+        back.style.color = document.getElementById('m-back-text').value;
+        button.style.background = document.getElementById('m-back-cta-bg').value;
+        button.style.color = document.getElementById('m-back-cta-text').value;
+      }
+      paletteInputIds.forEach(id => document.getElementById(id).addEventListener('input', refreshPalettePreview));
+      document.getElementById('m-accent').addEventListener('input', refreshPalettePreview);
+      refreshPalettePreview();
 
       // ----- Sections editor -----
       const sectionsList = document.getElementById('sections-list');
@@ -1499,6 +1690,16 @@
         p.logo = document.getElementById('m-logo').value.trim();
         p.url = document.getElementById('m-url').value.trim();
         p.accent = document.getElementById('m-accent').value;
+        p.palette = {
+          frontText: document.getElementById('m-front-text').value,
+          frontMuted: document.getElementById('m-front-muted').value,
+          backBackground: document.getElementById('m-back-background').value.trim(),
+          backText: document.getElementById('m-back-text').value,
+          backMuted: document.getElementById('m-back-muted').value,
+          backSubtle: document.getElementById('m-back-subtle').value,
+          backCtaBackground: document.getElementById('m-back-cta-bg').value,
+          backCtaText: document.getElementById('m-back-cta-text').value
+        };
         // p.background is already kept in sync by the background-mode editor.
         // If the user switched to "Auto" or cleared the image URL, it'll be ''.
         p.cta = {
@@ -1753,6 +1954,7 @@
     }
 
     function renderAll() {
+      renderMotion();
       renderProfile();
       renderProfileAbout();
       renderProjects();

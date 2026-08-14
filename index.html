@@ -121,24 +121,47 @@
       width: 100%;
       max-width: 420px;
       padding: 12px 0 22px;
+      perspective: 1600px;
     }
     .profile-card {
+      --cursor-x: 0px;
+      --cursor-y: 0px;
+      --pointer-rx: 0deg;
+      --pointer-ry: 0deg;
+      --state-y: 0px;
+      --state-z: 0px;
+      --state-scale: 1;
       position: relative;
       width: 100%;
       height: 220px;
       border-radius: 22px;
       cursor: pointer;
       perspective: 1600px;
-      transition: height 560ms cubic-bezier(.32,.72,0,1);
+      transform-style: preserve-3d;
+      transform:
+        translate3d(var(--cursor-x), calc(var(--state-y) + var(--cursor-y)), var(--state-z))
+        rotateX(var(--pointer-rx)) rotateY(var(--pointer-ry))
+        scale(var(--state-scale));
+      transition:
+        height var(--motion-spring-ms, 620ms) cubic-bezier(.22,.9,.25,1),
+        transform var(--motion-spring-ms, 620ms) cubic-bezier(.22,1.18,.36,1),
+        filter 180ms ease;
+      will-change: height, transform;
     }
-    .profile-card.is-flipped { height: 380px; }
+    .profile-card.is-flipped {
+      height: 380px;
+      --state-y: var(--motion-profile-y, -9px);
+      --state-z: var(--motion-profile-z, 22px);
+      --state-scale: var(--motion-profile-scale, 1.008);
+    }
     .profile-card .card-inner {
       position: relative;
       width: 100%;
       height: 100%;
       transform-style: preserve-3d;
-      transition: transform 700ms cubic-bezier(.32,.72,0,1);
+      transition: transform var(--motion-flip-ms, 760ms) cubic-bezier(.2,.78,.22,1);
       border-radius: inherit;
+      transform-origin: 52% 50%;
     }
     .profile-card.is-flipped .card-inner { transform: rotateY(-180deg); }
     .profile-card .face {
@@ -285,6 +308,8 @@
     .stack {
       position: relative;
       width: 100%;
+      perspective: 1400px;
+      transform-style: preserve-3d;
       /* Height is set by JS based on TOP_H + (N-1) * PEEK_H so the layout
          is identical no matter which card is active — no scrolling on tap. */
       margin: 8px 0 24px;
@@ -293,6 +318,13 @@
     /* === Card — Cupertino === */
     /* iOS spring: cubic-bezier(.32,.72,0,1) — used everywhere for parity. */
     .card {
+      --cursor-x: 0px;
+      --cursor-y: 0px;
+      --pointer-rx: 0deg;
+      --pointer-ry: 0deg;
+      --state-y: 0px;
+      --state-z: 0px;
+      --state-scale: 1;
       position: absolute;
       left: 0; right: 0;
       height: var(--card-h);
@@ -300,20 +332,53 @@
       overflow: visible;
       cursor: pointer;
       perspective: 1600px;
-      will-change: top, height;
+      transform-style: preserve-3d;
+      transform:
+        translate3d(var(--cursor-x), calc(var(--state-y) + var(--cursor-y)), var(--state-z))
+        rotateX(var(--pointer-rx)) rotateY(var(--pointer-ry))
+        scale(var(--state-scale));
+      transform-origin: 50% 78%;
+      will-change: top, height, transform;
     }
     /* Transitions only after first layout pass. */
     .card.ready {
-      transition: top 520ms cubic-bezier(.32,.72,0,1),
-                  height 560ms cubic-bezier(.32,.72,0,1);
+      transition:
+        top var(--motion-spring-ms, 620ms) cubic-bezier(.22,.9,.25,1),
+        height var(--motion-spring-ms, 620ms) cubic-bezier(.22,.9,.25,1),
+        transform var(--motion-spring-ms, 620ms) cubic-bezier(.22,1.18,.36,1),
+        filter 180ms ease;
+    }
+    .card.is-extracted {
+      --state-y: var(--motion-extract-y, -16px);
+      --state-z: var(--motion-extract-z, 34px);
+      --state-scale: var(--motion-extract-scale, 1.018);
+    }
+    .card.is-pressed,
+    .profile-card.is-pressed {
+      --state-scale: .994;
+      filter: brightness(1.035);
+    }
+    .card.is-pointer-tracking {
+      transition:
+        top var(--motion-spring-ms, 620ms) cubic-bezier(.22,.9,.25,1),
+        height var(--motion-spring-ms, 620ms) cubic-bezier(.22,.9,.25,1),
+        transform 120ms cubic-bezier(.2,.7,.2,1),
+        filter 180ms ease;
+    }
+    .profile-card.is-pointer-tracking {
+      transition:
+        height var(--motion-spring-ms, 620ms) cubic-bezier(.22,.9,.25,1),
+        transform 120ms cubic-bezier(.2,.7,.2,1),
+        filter 180ms ease;
     }
     .card-inner {
       position: relative;
       width: 100%;
       height: 100%;
       transform-style: preserve-3d;
-      transition: transform 700ms cubic-bezier(.32,.72,0,1);
+      transition: transform var(--motion-flip-ms, 760ms) cubic-bezier(.2,.78,.22,1);
       border-radius: inherit;
+      transform-origin: 52% 50%;
     }
     /* Mirror flip — card rotates in the opposite direction so it feels like
        the right edge swings forward instead of the left. */
@@ -401,6 +466,42 @@
         linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.00) 22%);
       pointer-events: none;
       z-index: 1;
+    }
+    /* Cursor-driven reflection. It stays invisible until pointer tracking is
+       active, then travels across the material instead of moving the content. */
+    .face::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      background: radial-gradient(
+        circle at var(--glare-x, 50%) var(--glare-y, 35%),
+        rgba(255,255,255,.62) 0%,
+        rgba(255,255,255,.16) 17%,
+        transparent 46%
+      );
+      mix-blend-mode: soft-light;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 3;
+      transition: opacity 220ms ease;
+    }
+    .card.is-pointer-tracking .face::before,
+    .profile-card.is-pointer-tracking .face::before {
+      opacity: var(--motion-glare-opacity, .22);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      html[data-motion="on"] .card.ready:not(.is-extracted):hover {
+        --state-y: var(--motion-hover-y, -6px);
+        --state-z: 14px;
+        --state-scale: 1.006;
+      }
+      html[data-motion="on"] .profile-card:not(.is-flipped):hover {
+        --state-y: var(--motion-hover-y, -6px);
+        --state-z: 14px;
+        --state-scale: 1.006;
+      }
     }
     .face .overlay {
       /* Vignette at bottom anchors the slogan on the last card; on peek cards
@@ -1173,6 +1274,17 @@
 
   <script>
     const FALLBACK = {
+      motion: {
+        enabled: true,
+        cursorTilt: 6.5,
+        cursorShift: 4,
+        hoverLift: 6,
+        extractLift: 16,
+        extractScale: 1.018,
+        flipDuration: 760,
+        springDuration: 620,
+        glare: 0.22
+      },
       profile: {
         name: "Yasha Vozhakin",
         title: "Founder & Creator",
@@ -1307,6 +1419,97 @@
       }
     }
 
+    const MOTION_DEFAULTS = {
+      enabled: true,
+      cursorTilt: 6.5,
+      cursorShift: 4,
+      hoverLift: 6,
+      extractLift: 16,
+      extractScale: 1.018,
+      flipDuration: 760,
+      springDuration: 620,
+      glare: 0.22
+    };
+    let motionSettings = { ...MOTION_DEFAULTS };
+
+    function clampNumber(value, min, max, fallback) {
+      const n = Number(value);
+      return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : fallback;
+    }
+
+    function applyMotionSettings(settings) {
+      motionSettings = { ...MOTION_DEFAULTS, ...(settings || {}) };
+      const enabled = motionSettings.enabled !== false && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const root = document.documentElement;
+      root.dataset.motion = enabled ? 'on' : 'off';
+      const hoverLift = enabled ? clampNumber(motionSettings.hoverLift, 0, 20, 6) : 0;
+      const extractLift = enabled ? clampNumber(motionSettings.extractLift, 0, 36, 16) : 0;
+      root.style.setProperty('--motion-hover-y', `${-hoverLift}px`);
+      root.style.setProperty('--motion-extract-y', `${-extractLift}px`);
+      root.style.setProperty('--motion-profile-y', `${-(extractLift * .55)}px`);
+      root.style.setProperty('--motion-extract-z', enabled ? '34px' : '0px');
+      root.style.setProperty('--motion-profile-z', enabled ? '22px' : '0px');
+      root.style.setProperty('--motion-profile-scale', enabled ? '1.008' : '1');
+      root.style.setProperty('--motion-extract-scale', String(enabled ? clampNumber(motionSettings.extractScale, 1, 1.06, 1.018) : 1));
+      root.style.setProperty('--motion-flip-ms', `${clampNumber(motionSettings.flipDuration, 240, 1400, 760)}ms`);
+      root.style.setProperty('--motion-spring-ms', `${clampNumber(motionSettings.springDuration, 240, 1400, 620)}ms`);
+      root.style.setProperty('--motion-glare-opacity', String(enabled ? clampNumber(motionSettings.glare, 0, .5, .22) : 0));
+    }
+
+    function bindPhysicalMotion(card) {
+      if (!card || card.dataset.motionBound === '1') return;
+      card.dataset.motionBound = '1';
+      const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      let frame = 0;
+      let latestEvent = null;
+      let leaveTimer = 0;
+
+      const reset = () => {
+        cancelAnimationFrame(frame);
+        frame = 0;
+        latestEvent = null;
+        card.classList.remove('is-pressed');
+        card.style.setProperty('--cursor-x', '0px');
+        card.style.setProperty('--cursor-y', '0px');
+        card.style.setProperty('--pointer-rx', '0deg');
+        card.style.setProperty('--pointer-ry', '0deg');
+        card.style.setProperty('--glare-x', '50%');
+        card.style.setProperty('--glare-y', '35%');
+        clearTimeout(leaveTimer);
+        leaveTimer = window.setTimeout(() => card.classList.remove('is-pointer-tracking'), 150);
+      };
+
+      card.addEventListener('pointermove', event => {
+        if (!finePointer.matches || reducedMotion.matches || motionSettings.enabled === false || event.pointerType === 'touch') return;
+        latestEvent = event;
+        if (frame) return;
+        frame = requestAnimationFrame(() => {
+          frame = 0;
+          if (!latestEvent) return;
+          const rect = card.getBoundingClientRect();
+          const nx = Math.max(-1, Math.min(1, ((latestEvent.clientX - rect.left) / rect.width - .5) * 2));
+          const ny = Math.max(-1, Math.min(1, ((latestEvent.clientY - rect.top) / rect.height - .5) * 2));
+          const tilt = clampNumber(motionSettings.cursorTilt, 0, 12, 6.5);
+          const shift = clampNumber(motionSettings.cursorShift, 0, 10, 4);
+          clearTimeout(leaveTimer);
+          card.classList.add('is-pointer-tracking');
+          card.style.setProperty('--cursor-x', `${(nx * shift).toFixed(2)}px`);
+          card.style.setProperty('--cursor-y', `${(ny * shift * .62).toFixed(2)}px`);
+          card.style.setProperty('--pointer-rx', `${(-ny * tilt).toFixed(2)}deg`);
+          card.style.setProperty('--pointer-ry', `${(nx * tilt).toFixed(2)}deg`);
+          card.style.setProperty('--glare-x', `${(50 + nx * 34).toFixed(1)}%`);
+          card.style.setProperty('--glare-y', `${(42 + ny * 32).toFixed(1)}%`);
+        });
+      });
+      card.addEventListener('pointerleave', reset);
+      card.addEventListener('pointercancel', reset);
+      card.addEventListener('pointerdown', event => {
+        if (event.pointerType !== 'touch' && motionSettings.enabled !== false) card.classList.add('is-pressed');
+      });
+      card.addEventListener('pointerup', () => card.classList.remove('is-pressed'));
+    }
+
     /* ----- Renderers ----- */
     function renderProfile(p) {
       const about = Array.isArray(p.about) ? p.about : [];
@@ -1346,6 +1549,8 @@
         </article>
       `;
       const card = document.getElementById('profile-card');
+      bindPhysicalMotion(card);
+      requestAnimationFrame(() => card.classList.add('ready'));
       card.addEventListener('click', (e) => {
         if (e.target.closest('[data-close]')) {
           card.classList.remove('is-flipped');
@@ -1606,8 +1811,9 @@
 
     function textPaletteFor(project) {
       const id = String(project.id || '').toLowerCase();
+      let fallback;
       if (id === 'afford') {
-        return {
+        fallback = {
           text: '#573319',
           muted: '#8b5b34',
           overlay: 'linear-gradient(180deg, rgba(87,51,25,0) 0%, rgba(87,51,25,0) 58%, rgba(87,51,25,0.08) 100%)',
@@ -1621,25 +1827,48 @@
           backCtaBg: '#573319',
           backCtaText: '#fff8ed',
         };
-      }
-      if (id === 'p_87fo6th') {
-        return {
+      } else if (id === 'p_87fo6th') {
+        fallback = {
           text: '#ffffff',
           muted: '#c8d7ff',
           backBg: 'radial-gradient(circle at 84% 0%, rgba(97,116,255,0.48) 0%, transparent 42%), linear-gradient(160deg, #153b9f 0%, #242166 58%, #25133f 100%)',
           backText: '#ffffff',
           backMuted: '#aebdff',
           backSubtle: '#d6dcff',
+          backCtaBg: '#ffffff',
+          backCtaText: '#151329',
+        };
+      } else {
+        fallback = {
+          text: '#fffaff',
+          muted: '#b9b0ca',
+          backBg: 'radial-gradient(circle at 88% 0%, #34323f 0%, #17151f 34%, #0d0a15 100%)',
+          backText: '#fffaff',
+          backMuted: '#948aa7',
+          backSubtle: '#c2b9d2',
+          backCtaBg: '#fffaff',
+          backCtaText: '#0a0a0e',
         };
       }
-      return {
-        text: '#fffaff',
-        muted: '#b9b0ca',
-        backBg: 'radial-gradient(circle at 88% 0%, #34323f 0%, #17151f 34%, #0d0a15 100%)',
-        backText: '#fffaff',
-        backMuted: '#948aa7',
-        backSubtle: '#c2b9d2',
+
+      const custom = (project.palette && typeof project.palette === 'object') ? project.palette : {};
+      const palette = {
+        ...fallback,
+        text: custom.frontText || fallback.text,
+        muted: custom.frontMuted || fallback.muted,
+        overlay: custom.frontOverlay || fallback.overlay,
+        backBg: custom.backBackground || fallback.backBg,
+        backText: custom.backText || fallback.backText,
+        backMuted: custom.backMuted || fallback.backMuted,
+        backSubtle: custom.backSubtle || fallback.backSubtle,
+        backCtaBg: custom.backCtaBackground || fallback.backCtaBg,
+        backCtaText: custom.backCtaText || fallback.backCtaText,
       };
+      const { r, g, b } = hexToRgb(palette.backText);
+      palette.backControlBg = custom.backControlBackground || (custom.backText ? `rgba(${r},${g},${b},0.08)` : fallback.backControlBg) || `rgba(${r},${g},${b},0.08)`;
+      palette.backControlHover = custom.backControlHover || (custom.backText ? `rgba(${r},${g},${b},0.14)` : fallback.backControlHover) || `rgba(${r},${g},${b},0.14)`;
+      palette.backDot = custom.backDot || (custom.backText ? `rgba(${r},${g},${b},0.28)` : fallback.backDot) || `rgba(${r},${g},${b},0.28)`;
+      return palette;
     }
 
     function createCard(project, projectIdx) {
@@ -1715,6 +1944,8 @@
           <button type="button" class="card-nav next" data-variant-nav="next" aria-label="Следующая сестра" aria-disabled="${(project._siblingIdx || 0) === project._siblings.length - 1}">${ICON_CHEVRON_RIGHT}</button>
         ` : ''}
       `;
+
+      bindPhysicalMotion(card);
 
       return card;
     }
@@ -1798,6 +2029,7 @@
           card.style.zIndex = String(isExplicit ? 100 : (10 + idx));
           card.classList.toggle('is-flipped', cardIsFlipped);
           card.classList.toggle('is-active', isActive && !cardIsFlipped);
+          card.classList.toggle('is-extracted', isExplicit);
           card.setAttribute('aria-hidden', 'false');
 
           // Layout advance:
@@ -2195,6 +2427,7 @@
     (async () => {
       generateStarfield();
       const data = await loadData();
+      applyMotionSettings(data.motion || {});
       renderProfile(data.profile || {});
       initStack(data.projects || []);
       renderContacts(data.contacts || []);
