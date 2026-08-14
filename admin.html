@@ -263,6 +263,16 @@
       word-break: break-word;
       margin-top: 10px;
     }
+
+    @keyframes motion-preview-pull {
+      0% { transform: translateY(0) scale(1); filter: brightness(1); }
+      16% { transform: translateY(2px) scale(.992); filter: brightness(.98); }
+      68% { transform: translateY(calc(var(--preview-y) - 4px)) scale(calc(var(--preview-scale) + .006)); filter: brightness(1.04); }
+      100% { transform: translateY(var(--preview-y)) scale(var(--preview-scale)); filter: brightness(1); }
+    }
+    #motion-preview-card.is-preview-pulling {
+      animation: motion-preview-pull var(--preview-duration, 620ms) cubic-bezier(.22,.75,.2,1) both;
+    }
   
     /* ===== Mobile responsive (тщательный, не просто flex-wrap) ===== */
     @media (max-width: 640px) {
@@ -597,8 +607,8 @@
       </div>
       <div class="grid-2">
         <div id="motion-preview" style="grid-column:1 / -1; min-height:150px; display:grid; place-items:center; border:0.5px solid var(--border); border-radius:14px; background:radial-gradient(circle at 50% 20%,rgba(122,92,201,.18),transparent 52%),#0d0b13; overflow:hidden; perspective:900px;">
-          <div id="motion-preview-card" style="width:min(280px,72%);height:108px;border-radius:16px;background:linear-gradient(155deg,#4935b7,#1c153d);box-shadow:0 24px 50px rgba(0,0,0,.45);display:flex;align-items:flex-end;padding:16px;color:#fff;transition:transform 120ms ease,box-shadow 180ms ease;transform-style:preserve-3d;position:relative;overflow:hidden;">
-            <span style="position:relative;z-index:2;font-size:13px;font-weight:600;">Подъём 2D · курсор двигает блик</span>
+          <div id="motion-preview-card" style="width:min(280px,72%);height:108px;border-radius:16px;background:linear-gradient(155deg,#4935b7,#1c153d);box-shadow:0 24px 50px rgba(0,0,0,.45);display:flex;align-items:flex-end;padding:16px;color:#fff;transition:transform 120ms ease,box-shadow 180ms ease;transform-style:preserve-3d;position:relative;overflow:hidden;cursor:pointer;">
+            <span style="position:relative;z-index:2;font-size:13px;font-weight:600;">Нажми, чтобы увидеть переход</span>
             <span id="motion-preview-glare" style="position:absolute;inset:0;background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.58),transparent 45%);opacity:.22;mix-blend-mode:soft-light;pointer-events:none;"></span>
           </div>
         </div>
@@ -1056,8 +1066,13 @@
       if (!card || !glare) return;
       const m = state.motion;
       const enabled = m.enabled !== false;
+      const previewY = -(Number(m.extractLift) || 0) * .35;
+      const previewScale = Number(m.extractScale) || 1;
+      card.style.setProperty('--preview-y', `${previewY}px`);
+      card.style.setProperty('--preview-scale', String(previewScale));
+      card.style.setProperty('--preview-duration', `${Number(m.springDuration) || 620}ms`);
       card.style.transform = enabled
-        ? `translateY(${-(Number(m.extractLift) || 0) * .35}px) scale(${Number(m.extractScale) || 1})`
+        ? `translateY(${previewY}px) scale(${previewScale})`
         : 'none';
       card.style.boxShadow = enabled ? '0 28px 54px rgba(0,0,0,.5)' : '0 12px 26px rgba(0,0,0,.34)';
       glare.style.opacity = enabled ? String(Number(m.glare) || 0) : '0';
@@ -1112,6 +1127,19 @@
       glare.style.background = `radial-gradient(circle at ${50 + nx * 34}% ${42 + ny * 32}%,rgba(255,255,255,.62),transparent 45%)`;
     });
     document.getElementById('motion-preview-card').addEventListener('pointerleave', renderMotionPreview);
+    document.getElementById('motion-preview-card').addEventListener('click', event => {
+      ensureMotionState();
+      if (state.motion.enabled === false) return;
+      const card = event.currentTarget;
+      card.classList.remove('is-preview-pulling');
+      void card.offsetWidth;
+      card.classList.add('is-preview-pulling');
+      clearTimeout(card._previewTimer);
+      card._previewTimer = window.setTimeout(
+        () => card.classList.remove('is-preview-pulling'),
+        (Number(state.motion.springDuration) || 620) + 80
+      );
+    });
 
     /* ----- Render: profile / footer ----- */
     function renderProfile() {

@@ -353,6 +353,27 @@
       --state-y: var(--motion-extract-y, -16px);
       --state-scale: var(--motion-extract-scale, 1.018);
     }
+    @keyframes project-card-pull-out {
+      0% {
+        transform: translateY(0) scale(1);
+        filter: brightness(1);
+      }
+      16% {
+        transform: translateY(2px) scale(.992);
+        filter: brightness(.98);
+      }
+      68% {
+        transform: translateY(calc(var(--state-y) - 5px)) scale(calc(var(--state-scale) + .006));
+        filter: brightness(1.035);
+      }
+      100% {
+        transform: translateY(var(--state-y)) scale(var(--state-scale));
+        filter: brightness(1);
+      }
+    }
+    .card.is-extracted.is-entering .card-motion {
+      animation: project-card-pull-out var(--motion-spring-ms, 620ms) cubic-bezier(.22,.75,.2,1) both;
+    }
     .card-inner {
       position: relative;
       width: 100%;
@@ -2071,6 +2092,16 @@
         card.querySelectorAll('[data-variant-nav="next"]').forEach(b => b.setAttribute('aria-disabled', String(clamped === pages.length - 1)));
       }
 
+      function playCardEntry(card) {
+        if (!card) return;
+        clearTimeout(card._entryTimer);
+        card.classList.remove('is-entering');
+        if (motionSettings.enabled === false || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        card.classList.add('is-entering');
+        const duration = clampNumber(motionSettings.springDuration, 240, 1400, 620);
+        card._entryTimer = window.setTimeout(() => card.classList.remove('is-entering'), duration + 80);
+      }
+
       cards.forEach((card) => {
         const idx = +card.dataset.idx;
 
@@ -2123,17 +2154,17 @@
           // того, по какой сестре в стопке кликнули. Пользователь может
           // перейти на вторую сестру через стрелку / точку / свайп.
           const effIdx = leaderIdx(idx);
-          const lastIdx = cards.length - 1;
           const isExplicit = (expandedIdx === effIdx);
-          const isActiveNow =
-            isExplicit || (effIdx === lastIdx && expandedIdx === -1);
-          if (!isActiveNow) {
+          let shouldPlayEntry = false;
+          if (!isExplicit) {
             // Peek → active. Гарантируем стартовую страницу = 0.
             expandedIdx = effIdx;
             isFlipped = false;
             setVariant(cards[effIdx], 0);
+            shouldPlayEntry = true;
           } else if (!isFlipped) {
             // Active → flipped
+            cards[effIdx].classList.remove('is-entering');
             expandedIdx = effIdx;
             isFlipped = true;
           } else {
@@ -2143,6 +2174,7 @@
             isFlipped = false;
           }
           apply();
+          if (shouldPlayEntry) playCardEntry(cards[effIdx]);
         });
 
         // Horizontal swipe on the variant track
