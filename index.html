@@ -9,7 +9,7 @@
   <meta property="og:description" content="Yasha Vozhakin — Founder by Vozhakin Group" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://vozhakin.group" />
-  <meta name="theme-color" content="#000000" />
+  <meta name="theme-color" content="#020207" />
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link rel="apple-touch-icon" href="/favicon.ico" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -17,14 +17,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #000;
-      --bg-tint: #0a0a0c;
-      --text: #f5f5f7;
-      --text-muted: #98989d;
-      --text-subtle: rgba(255,255,255,0.40);
-      --glass-bg: rgba(255,255,255,0.06);
-      --glass-highlight: rgba(255,255,255,0.18);
-      --hairline: rgba(255,255,255,0.10);
+      --bg: #020207;
+      --bg-tint: #080712;
+      --text: #f8f5ff;
+      --text-muted: #b7afc7;
+      --text-subtle: rgba(183,175,199,0.54);
+      --glass-bg: rgba(137,113,194,0.08);
+      --glass-highlight: rgba(229,220,255,0.20);
+      --hairline: rgba(201,190,226,0.13);
       --card-h: 280px;
       /* legacy aliases */
       --muted: var(--text-muted);
@@ -61,10 +61,10 @@
       pointer-events: none;
       overflow: hidden;
       background:
-        radial-gradient(ellipse 70% 55% at 18% 22%, rgba(60,40,120,0.20) 0%, transparent 55%),
-        radial-gradient(ellipse 60% 50% at 82% 78%, rgba(20,40,100,0.16) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(90,30,130,0.06) 0%, transparent 70%),
-        #000;
+        radial-gradient(ellipse 62% 48% at 74% 14%, rgba(170,155,255,0.16) 0%, transparent 58%),
+        radial-gradient(ellipse 68% 55% at 26% 46%, rgba(83,62,147,0.12) 0%, transparent 62%),
+        radial-gradient(ellipse 54% 46% at 82% 82%, rgba(38,53,125,0.10) 0%, transparent 66%),
+        linear-gradient(148deg, #020207 0%, #080712 56%, #020205 100%);
     }
     /* @property registers the drift offsets as <length>s so the browser can
        smoothly interpolate between them. Without this, custom properties are
@@ -330,7 +330,7 @@
          на front в некоторых браузерах (Safari, старый Firefox) обратная сторона
          «протекает» через лицевую — видны зеркальные логотип/название. */
       transform: translateZ(0);
-      color: #fff;
+      color: var(--card-text, #fffaff);
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -409,11 +409,11 @@
       position: absolute;
       inset: 0;
       border-radius: inherit;
-      background:
+      background: var(--card-overlay,
         linear-gradient(180deg,
           rgba(0,0,0,0.00) 0%,
           rgba(0,0,0,0.00) 55%,
-          rgba(0,0,0,0.35) 100%);
+          rgba(0,0,0,0.35) 100%));
       pointer-events: none;
       z-index: 1;
     }
@@ -431,6 +431,7 @@
       background:
         radial-gradient(120% 80% at 30% 0%, rgba(255,255,255,0.05) 0%, transparent 55%),
         linear-gradient(170deg, #1c1c1e 0%, #0a0a0c 100%);
+      color: var(--text);
       padding: 18px 18px 16px;
     }
 
@@ -461,7 +462,7 @@
       padding: 0;
     }
     .logo-box .initial {
-      font-size: 26px; font-weight: 500; color: #fff;
+      font-size: 26px; font-weight: 500; color: var(--card-text, #fffaff);
       letter-spacing: -0.01em;
     }
     .brand-name {
@@ -482,7 +483,7 @@
       font-weight: 500;
       letter-spacing: 0.04em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.55);
+      color: var(--card-muted, rgba(255,255,255,0.55));
       white-space: nowrap;
       padding-left: 12px;
       position: relative;
@@ -497,7 +498,8 @@
       left: 3px;
       top: 50%;
       transform: translateY(-55%);
-      color: rgba(255,255,255,0.35);
+      color: var(--card-muted, rgba(255,255,255,0.35));
+      opacity: 0.7;
       font-size: 14px;
       line-height: 1;
     }
@@ -516,7 +518,7 @@
       font-size: 11px;
       font-weight: 500;
       letter-spacing: 0.02em;
-      color: rgba(255,255,255,0.96);
+      color: var(--card-text, rgba(255,255,255,0.96));
       font-variant-numeric: tabular-nums;
       flex-shrink: 0;
       box-shadow:
@@ -537,7 +539,7 @@
       letter-spacing: 0.10em;
       text-transform: uppercase;
       margin: 0 0 5px;
-      color: rgba(255,255,255,0.68);
+      color: var(--card-muted, rgba(255,255,255,0.68));
     }
     .slogan {
       font-size: 23px;
@@ -564,7 +566,7 @@
       font-weight: 500;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.50);
+      color: #948aa7;
       margin: 0 0 3px;
     }
     .back h3 {
@@ -593,7 +595,7 @@
     .back .back-tagline {
       font-size: 14px;
       font-weight: 400;
-      color: rgba(255,255,255,0.74);
+      color: #b7afc7;
       margin: 0 0 14px;
       letter-spacing: -0.005em;
       line-height: 1.35;
@@ -641,7 +643,7 @@
       font-size: 11px;
       letter-spacing: 0.10em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.50);
+      color: #948aa7;
       margin: 0 0 5px;
       font-weight: 500;
     }
@@ -649,7 +651,7 @@
       font-size: 14px;
       line-height: 1.45;
       margin: 0;
-      color: rgba(255,255,255,0.88);
+      color: #e9e4f2;
       font-weight: 400;
       /* Сохраняем \n из JSON как переносы строк (для буллетов в секциях) */
       white-space: pre-line;
@@ -936,13 +938,13 @@
       display: inline-flex; align-items: center; gap: 8px;
       font-size: 13px;
       font-weight: 500;
-      color: rgba(255,255,255,0.72);
+      color: #b7afc7;
       letter-spacing: -0.005em;
       background: none; border: none; padding: 0; margin: 0;
       cursor: pointer; font-family: inherit;
       transition: color 200ms ease, transform 200ms ease;
     }
-    .footer .brand-row:hover { color: rgba(255,255,255,0.95); }
+    .footer .brand-row:hover { color: #fffaff; }
     .footer .brand-row:active { transform: scale(0.97); }
     .footer .brand-row img {
       width: auto; height: 40px;
@@ -1602,13 +1604,32 @@
       return `url("${bg.replace(/"/g, '\\"')}")`;
     }
 
+    function textPaletteFor(project) {
+      const id = String(project.id || '').toLowerCase();
+      if (id === 'afford') {
+        return {
+          text: '#573319',
+          muted: '#8b5b34',
+          overlay: 'linear-gradient(180deg, rgba(87,51,25,0) 0%, rgba(87,51,25,0) 58%, rgba(87,51,25,0.08) 100%)',
+        };
+      }
+      if (id === 'p_87fo6th') {
+        return { text: '#ffffff', muted: '#c8d7ff' };
+      }
+      return { text: '#fffaff', muted: '#b9b0ca' };
+    }
+
     function createCard(project, projectIdx) {
       const card = document.createElement('article');
       card.className = 'card';
       if ((project.background || '').trim() === 'glass') card.classList.add('is-glass');
       card.dataset.idx = projectIdx;
 
+      const textPalette = textPaletteFor(project);
       card.style.setProperty('--card-bg', resolveBackground(project));
+      card.style.setProperty('--card-text', textPalette.text);
+      card.style.setProperty('--card-muted', textPalette.muted);
+      if (textPalette.overlay) card.style.setProperty('--card-overlay', textPalette.overlay);
 
       const initials = (project.name || '?').slice(0, 1).toUpperCase();
       const logoInner = project.logo
@@ -2151,4 +2172,3 @@
   </script>
 </body>
 </html>
-      
