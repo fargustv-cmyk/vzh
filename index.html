@@ -392,7 +392,8 @@
     /* Front с явной нулевой ротацией = тот же 3D-контекст, что и back.
        Без этого front может оказаться в плоском контексте, и при повороте
        card-inner на -180° front покажется зеркально. */
-    .face.front {
+    .face.front { transform: rotateY(0deg) translateZ(0); }
+    .card .face.front {
       transform: rotateY(0deg) translateZ(.5px);
       background: var(--card-bg, linear-gradient(165deg, #555, #222));
       background-size: cover;
