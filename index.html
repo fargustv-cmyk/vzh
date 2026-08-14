@@ -1501,7 +1501,12 @@
 
       card.addEventListener('pointermove', event => {
         if (!finePointer.matches || reducedMotion.matches || motionSettings.enabled === false || event.pointerType === 'touch') return;
-        if (card.classList.contains('card') && !card.classList.contains('is-active') && !card.classList.contains('is-flipped')) return;
+        const isProjectCard = card.classList.contains('card');
+        const motionLocked = card.classList.contains('is-flipped') || (isProjectCard && !card.classList.contains('is-active'));
+        if (motionLocked) {
+          if (card.classList.contains('is-pointer-tracking')) reset();
+          return;
+        }
         latestEvent = event;
         if (frame) return;
         frame = requestAnimationFrame(() => {
@@ -1525,10 +1530,11 @@
       card.addEventListener('pointerleave', reset);
       card.addEventListener('pointercancel', reset);
       card.addEventListener('pointerdown', event => {
-        const canPress = !card.classList.contains('card') || card.classList.contains('is-active') || card.classList.contains('is-flipped');
+        const canPress = !card.classList.contains('is-flipped') && (!card.classList.contains('card') || card.classList.contains('is-active'));
         if (canPress && event.pointerType !== 'touch' && motionSettings.enabled !== false) card.classList.add('is-pressed');
       });
       card.addEventListener('pointerup', () => card.classList.remove('is-pressed'));
+      window.addEventListener('pointerup', () => card.classList.remove('is-pressed'), { passive: true });
     }
 
     /* ----- Renderers ----- */
@@ -1575,9 +1581,11 @@
       card.addEventListener('click', (e) => {
         if (e.target.closest('[data-close]')) {
           card.classList.remove('is-flipped');
+          if (typeof card._resetPhysicalMotion === 'function') card._resetPhysicalMotion();
           return;
         }
         card.classList.toggle('is-flipped');
+        if (card.classList.contains('is-flipped') && typeof card._resetPhysicalMotion === 'function') card._resetPhysicalMotion();
       });
     }
     function renderContacts(items) {
@@ -2053,7 +2061,7 @@
           card.classList.toggle('is-flipped', cardIsFlipped);
           card.classList.toggle('is-active', isActive && !cardIsFlipped);
           card.classList.toggle('is-extracted', isExplicit);
-          if (!isActive && typeof card._resetPhysicalMotion === 'function') card._resetPhysicalMotion();
+          if ((!isActive || cardIsFlipped) && typeof card._resetPhysicalMotion === 'function') card._resetPhysicalMotion();
           card.setAttribute('aria-hidden', 'false');
 
           // Layout advance:
