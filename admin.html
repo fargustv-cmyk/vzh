@@ -589,7 +589,7 @@
       <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:14px;">
         <div>
           <h2 style="margin:0 0 4px;">Движение карточек</h2>
-          <p class="hint" style="margin:0;">Общая физика подъёма, переворота и реакции на курсор.</p>
+          <p class="hint" style="margin:0;">Подъём и переворот по клику; курсор двигает только световой блик.</p>
         </div>
         <label style="display:flex; align-items:center; gap:8px; margin:0; white-space:nowrap;">
           <input id="motion-enabled" type="checkbox" style="width:auto;" /> Включено
@@ -598,13 +598,10 @@
       <div class="grid-2">
         <div id="motion-preview" style="grid-column:1 / -1; min-height:150px; display:grid; place-items:center; border:0.5px solid var(--border); border-radius:14px; background:radial-gradient(circle at 50% 20%,rgba(122,92,201,.18),transparent 52%),#0d0b13; overflow:hidden; perspective:900px;">
           <div id="motion-preview-card" style="width:min(280px,72%);height:108px;border-radius:16px;background:linear-gradient(155deg,#4935b7,#1c153d);box-shadow:0 24px 50px rgba(0,0,0,.45);display:flex;align-items:flex-end;padding:16px;color:#fff;transition:transform 120ms ease,box-shadow 180ms ease;transform-style:preserve-3d;position:relative;overflow:hidden;">
-            <span style="position:relative;z-index:2;font-size:13px;font-weight:600;">Проведи курсором</span>
+            <span style="position:relative;z-index:2;font-size:13px;font-weight:600;">Курсор двигает только блик</span>
             <span id="motion-preview-glare" style="position:absolute;inset:0;background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.58),transparent 45%);opacity:.22;mix-blend-mode:soft-light;pointer-events:none;"></span>
           </div>
         </div>
-        <div><label>Наклон за курсором · <span id="motion-cursorTilt-value"></span>°</label><input id="motion-cursorTilt" type="range" min="0" max="12" step="0.5" /></div>
-        <div><label>Сдвиг за курсором · <span id="motion-cursorShift-value"></span> px</label><input id="motion-cursorShift" type="range" min="0" max="10" step="0.5" /></div>
-        <div><label>Подъём при наведении · <span id="motion-hoverLift-value"></span> px</label><input id="motion-hoverLift" type="range" min="0" max="20" step="1" /></div>
         <div><label>Подъём из стопки · <span id="motion-extractLift-value"></span> px</label><input id="motion-extractLift" type="range" min="0" max="36" step="1" /></div>
         <div><label>Масштаб вынутой карты · <span id="motion-extractScale-value"></span></label><input id="motion-extractScale" type="range" min="1" max="1.06" step="0.001" /></div>
         <div><label>Сила блика · <span id="motion-glare-value"></span></label><input id="motion-glare" type="range" min="0" max="0.5" step="0.01" /></div>
@@ -720,9 +717,6 @@
     const DEFAULT = {
       motion: {
         enabled: true,
-        cursorTilt: 6.5,
-        cursorShift: 4,
-        hoverLift: 6,
         extractLift: 16,
         extractScale: 1.018,
         flipDuration: 760,
@@ -1044,12 +1038,15 @@
 
     /* ----- Render: motion ----- */
     const MOTION_FIELDS = [
-      'cursorTilt', 'cursorShift', 'hoverLift', 'extractLift',
-      'extractScale', 'glare', 'flipDuration', 'springDuration'
+      'extractLift', 'extractScale', 'glare', 'flipDuration', 'springDuration'
     ];
 
     function ensureMotionState() {
-      state.motion = { ...DEFAULT.motion, ...((state.motion && typeof state.motion === 'object') ? state.motion : {}) };
+      const motion = { ...DEFAULT.motion, ...((state.motion && typeof state.motion === 'object') ? state.motion : {}) };
+      delete motion.cursorTilt;
+      delete motion.cursorShift;
+      delete motion.hoverLift;
+      state.motion = motion;
     }
 
     function renderMotionPreview() {
@@ -1060,7 +1057,7 @@
       const m = state.motion;
       const enabled = m.enabled !== false;
       card.style.transform = enabled
-        ? `translate3d(0, ${-(Number(m.hoverLift) || 0) * .55}px, 18px) rotateX(-2deg) rotateY(3deg) scale(${Number(m.extractScale) || 1})`
+        ? `translate3d(0, ${-(Number(m.extractLift) || 0) * .35}px, 18px) scale(${Number(m.extractScale) || 1})`
         : 'none';
       card.style.boxShadow = enabled ? '0 28px 54px rgba(0,0,0,.5)' : '0 12px 26px rgba(0,0,0,.34)';
       glare.style.opacity = enabled ? String(Number(m.glare) || 0) : '0';
@@ -1111,9 +1108,6 @@
       const rect = card.getBoundingClientRect();
       const nx = Math.max(-1, Math.min(1, ((event.clientX - rect.left) / rect.width - .5) * 2));
       const ny = Math.max(-1, Math.min(1, ((event.clientY - rect.top) / rect.height - .5) * 2));
-      const tilt = Number(state.motion.cursorTilt) || 0;
-      const shift = Number(state.motion.cursorShift) || 0;
-      card.style.transform = `translate3d(${nx * shift}px, ${-(Number(state.motion.hoverLift) || 0) + ny * shift * .6}px, 22px) rotateX(${-ny * tilt}deg) rotateY(${nx * tilt}deg) scale(${Number(state.motion.extractScale) || 1})`;
       const glare = document.getElementById('motion-preview-glare');
       glare.style.background = `radial-gradient(circle at ${50 + nx * 34}% ${42 + ny * 32}%,rgba(255,255,255,.62),transparent 45%)`;
     });

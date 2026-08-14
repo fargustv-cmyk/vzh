@@ -1,9 +1,6 @@
 {
   "motion": {
     "enabled": true,
-    "cursorTilt": 6.5,
-    "cursorShift": 4,
-    "hoverLift": 6,
     "extractLift": 16,
     "extractScale": 1.018,
     "flipDuration": 760,

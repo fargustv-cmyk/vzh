@@ -125,10 +125,6 @@
       perspective: 1600px;
     }
     .profile-card {
-      --cursor-x: 0px;
-      --cursor-y: 0px;
-      --pointer-rx: 0deg;
-      --pointer-ry: 0deg;
       --state-y: 0px;
       --state-z: 0px;
       --state-scale: 1;
@@ -140,8 +136,7 @@
       perspective: 1600px;
       transform-style: preserve-3d;
       transform:
-        translate3d(var(--cursor-x), calc(var(--state-y) + var(--cursor-y)), var(--state-z))
-        rotateX(var(--pointer-rx)) rotateY(var(--pointer-ry))
+        translate3d(0, var(--state-y), var(--state-z))
         scale(var(--state-scale));
       transition:
         height var(--motion-spring-ms, 620ms) cubic-bezier(.22,.9,.25,1),
@@ -319,10 +314,6 @@
     /* === Card — Cupertino === */
     /* iOS spring: cubic-bezier(.32,.72,0,1) — used everywhere for parity. */
     .card {
-      --cursor-x: 0px;
-      --cursor-y: 0px;
-      --pointer-rx: 0deg;
-      --pointer-ry: 0deg;
       --state-y: 0px;
       --state-z: 0px;
       --state-scale: 1;
@@ -342,8 +333,8 @@
         top var(--motion-spring-ms, 620ms) cubic-bezier(.22,.9,.25,1),
         height var(--motion-spring-ms, 620ms) cubic-bezier(.22,.9,.25,1);
     }
-    /* The stack geometry and hit area stay fixed on .card. Only this visual
-       layer moves, so a tilt can never hand the pointer to a neighbouring card. */
+    /* The stack geometry and hit area stay fixed on .card. This visual layer
+       moves only after a deliberate click; cursor movement changes light only. */
     .card-motion {
       position: relative;
       width: 100%;
@@ -351,8 +342,7 @@
       border-radius: inherit;
       transform-style: preserve-3d;
       transform:
-        translate3d(var(--cursor-x), calc(var(--state-y) + var(--cursor-y)), var(--state-z))
-        rotateX(var(--pointer-rx)) rotateY(var(--pointer-ry))
+        translate3d(0, var(--state-y), var(--state-z))
         scale(var(--state-scale));
       transform-origin: 50% 78%;
       transition:
@@ -364,30 +354,6 @@
       --state-y: var(--motion-extract-y, -16px);
       --state-z: var(--motion-extract-z, 34px);
       --state-scale: var(--motion-extract-scale, 1.018);
-    }
-    .card.is-pressed,
-    .profile-card.is-pressed {
-      --state-scale: .994;
-    }
-    .card.is-pressed .card-motion,
-    .profile-card.is-pressed {
-      filter: brightness(1.035);
-    }
-    .card.is-pointer-tracking {
-      transition:
-        top var(--motion-spring-ms, 620ms) cubic-bezier(.22,.9,.25,1),
-        height var(--motion-spring-ms, 620ms) cubic-bezier(.22,.9,.25,1);
-    }
-    .card.is-pointer-tracking .card-motion {
-      transition:
-        transform 120ms cubic-bezier(.2,.7,.2,1),
-        filter 180ms ease;
-    }
-    .profile-card.is-pointer-tracking {
-      transition:
-        height var(--motion-spring-ms, 620ms) cubic-bezier(.22,.9,.25,1),
-        transform 120ms cubic-bezier(.2,.7,.2,1),
-        filter 180ms ease;
     }
     .card-inner {
       position: relative;
@@ -509,18 +475,6 @@
       opacity: var(--motion-glare-opacity, .22);
     }
 
-    @media (hover: hover) and (pointer: fine) {
-      html[data-motion="on"] .card.ready.is-active:not(.is-extracted):hover {
-        --state-y: var(--motion-hover-y, -6px);
-        --state-z: 14px;
-        --state-scale: 1.006;
-      }
-      html[data-motion="on"] .profile-card:not(.is-flipped):hover {
-        --state-y: var(--motion-hover-y, -6px);
-        --state-z: 14px;
-        --state-scale: 1.006;
-      }
-    }
     .face .overlay {
       /* Vignette at bottom anchors the slogan on the last card; on peek cards
          this area is hidden under the next card, on flipped cards it's
@@ -1294,9 +1248,6 @@
     const FALLBACK = {
       motion: {
         enabled: true,
-        cursorTilt: 6.5,
-        cursorShift: 4,
-        hoverLift: 6,
         extractLift: 16,
         extractScale: 1.018,
         flipDuration: 760,
@@ -1439,9 +1390,6 @@
 
     const MOTION_DEFAULTS = {
       enabled: true,
-      cursorTilt: 6.5,
-      cursorShift: 4,
-      hoverLift: 6,
       extractLift: 16,
       extractScale: 1.018,
       flipDuration: 760,
@@ -1460,9 +1408,7 @@
       const enabled = motionSettings.enabled !== false && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const root = document.documentElement;
       root.dataset.motion = enabled ? 'on' : 'off';
-      const hoverLift = enabled ? clampNumber(motionSettings.hoverLift, 0, 20, 6) : 0;
       const extractLift = enabled ? clampNumber(motionSettings.extractLift, 0, 36, 16) : 0;
-      root.style.setProperty('--motion-hover-y', `${-hoverLift}px`);
       root.style.setProperty('--motion-extract-y', `${-extractLift}px`);
       root.style.setProperty('--motion-profile-y', `${-(extractLift * .55)}px`);
       root.style.setProperty('--motion-extract-z', enabled ? '34px' : '0px');
@@ -1487,11 +1433,6 @@
         cancelAnimationFrame(frame);
         frame = 0;
         latestEvent = null;
-        card.classList.remove('is-pressed');
-        card.style.setProperty('--cursor-x', '0px');
-        card.style.setProperty('--cursor-y', '0px');
-        card.style.setProperty('--pointer-rx', '0deg');
-        card.style.setProperty('--pointer-ry', '0deg');
         card.style.setProperty('--glare-x', '50%');
         card.style.setProperty('--glare-y', '35%');
         clearTimeout(leaveTimer);
@@ -1515,26 +1456,14 @@
           const rect = card.getBoundingClientRect();
           const nx = Math.max(-1, Math.min(1, ((latestEvent.clientX - rect.left) / rect.width - .5) * 2));
           const ny = Math.max(-1, Math.min(1, ((latestEvent.clientY - rect.top) / rect.height - .5) * 2));
-          const tilt = clampNumber(motionSettings.cursorTilt, 0, 12, 6.5);
-          const shift = clampNumber(motionSettings.cursorShift, 0, 10, 4);
           clearTimeout(leaveTimer);
           card.classList.add('is-pointer-tracking');
-          card.style.setProperty('--cursor-x', `${(nx * shift).toFixed(2)}px`);
-          card.style.setProperty('--cursor-y', `${(ny * shift * .62).toFixed(2)}px`);
-          card.style.setProperty('--pointer-rx', `${(-ny * tilt).toFixed(2)}deg`);
-          card.style.setProperty('--pointer-ry', `${(nx * tilt).toFixed(2)}deg`);
           card.style.setProperty('--glare-x', `${(50 + nx * 34).toFixed(1)}%`);
           card.style.setProperty('--glare-y', `${(42 + ny * 32).toFixed(1)}%`);
         });
       });
       card.addEventListener('pointerleave', reset);
       card.addEventListener('pointercancel', reset);
-      card.addEventListener('pointerdown', event => {
-        const canPress = !card.classList.contains('is-flipped') && (!card.classList.contains('card') || card.classList.contains('is-active'));
-        if (canPress && event.pointerType !== 'touch' && motionSettings.enabled !== false) card.classList.add('is-pressed');
-      });
-      card.addEventListener('pointerup', () => card.classList.remove('is-pressed'));
-      window.addEventListener('pointerup', () => card.classList.remove('is-pressed'), { passive: true });
     }
 
     /* ----- Renderers ----- */
