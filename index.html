@@ -428,10 +428,10 @@
     }
     .back {
       transform: rotateY(-180deg) translateZ(0);
-      background:
-        radial-gradient(120% 80% at 30% 0%, rgba(255,255,255,0.05) 0%, transparent 55%),
-        linear-gradient(170deg, #1c1c1e 0%, #0a0a0c 100%);
-      color: var(--text);
+      background: var(--card-back-bg,
+        radial-gradient(120% 80% at 24% 0%, rgba(151,126,213,0.18) 0%, transparent 55%),
+        linear-gradient(160deg, #211e2b 0%, #0d0a15 72%, #08060e 100%));
+      color: var(--card-back-text, var(--text));
       padding: 18px 18px 16px;
     }
 
@@ -566,7 +566,7 @@
       font-weight: 500;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: #948aa7;
+      color: var(--card-back-muted, #948aa7);
       margin: 0 0 3px;
     }
     .back h3 {
@@ -585,8 +585,8 @@
       font-weight: 500;
       letter-spacing: 0.04em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.72);
-      background: rgba(255,255,255,0.08);
+      color: var(--card-back-subtle, #b7afc7);
+      background: var(--card-back-control-bg, rgba(255,255,255,0.08));
       border-radius: 999px;
       vertical-align: middle;
       line-height: 1;
@@ -595,7 +595,7 @@
     .back .back-tagline {
       font-size: 14px;
       font-weight: 400;
-      color: #b7afc7;
+      color: var(--card-back-subtle, #b7afc7);
       margin: 0 0 14px;
       letter-spacing: -0.005em;
       line-height: 1.35;
@@ -604,9 +604,9 @@
     .back .close-btn {
       width: 30px; height: 30px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.08);
+      background: var(--card-back-control-bg, rgba(255,255,255,0.08));
       border: none;
-      color: rgba(255,255,255,0.94);
+      color: var(--card-back-text, rgba(255,255,255,0.94));
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       font-size: 16px;
@@ -620,7 +620,7 @@
       backdrop-filter: blur(28px) saturate(180%);
       transition: background 160ms ease;
     }
-    .back .close-btn:hover { background: rgba(255,255,255,0.14); }
+    .back .close-btn:hover { background: var(--card-back-control-hover, rgba(255,255,255,0.14)); }
 
     .back .scroll {
       flex: 1;
@@ -643,7 +643,7 @@
       font-size: 11px;
       letter-spacing: 0.10em;
       text-transform: uppercase;
-      color: #948aa7;
+      color: var(--card-back-muted, #948aa7);
       margin: 0 0 5px;
       font-weight: 500;
     }
@@ -651,7 +651,7 @@
       font-size: 14px;
       line-height: 1.45;
       margin: 0;
-      color: #e9e4f2;
+      color: var(--card-back-text, #e9e4f2);
       font-weight: 400;
       /* Сохраняем \n из JSON как переносы строк (для буллетов в секциях) */
       white-space: pre-line;
@@ -693,7 +693,7 @@
       font-weight: 500;
       letter-spacing: .12em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.50);
+      color: var(--card-back-muted, rgba(255,255,255,0.50));
       margin: 0 0 3px;
     }
     .back .variant-dots {
@@ -707,17 +707,17 @@
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.25);
+      background: var(--card-back-dot, rgba(255,255,255,0.25));
       border: none;
       padding: 0;
       cursor: pointer;
       transition: background 240ms ease, transform 240ms ease;
     }
     .back .variant-dot.active {
-      background: rgba(255,255,255,0.90);
+      background: var(--card-back-text, rgba(255,255,255,0.90));
       transform: scale(1.15);
     }
-    .back .variant-dot:hover { background: rgba(255,255,255,0.50); }
+    .back .variant-dot:hover { background: var(--card-back-subtle, rgba(255,255,255,0.50)); }
 
     /* Старые селекторы карусели-стрелок остаются для обратной совместимости
        (на случай если cards.json со старой версией). Сейчас не используются. */
@@ -785,10 +785,10 @@
       align-items: center;
       gap: 12px;
       padding: 10px 12px;
-      background: rgba(255,255,255,0.06);
+      background: var(--card-back-control-bg, rgba(255,255,255,0.06));
       border-radius: 12px;
       text-decoration: none;
-      color: var(--text);
+      color: var(--card-back-text, var(--text));
       -webkit-backdrop-filter: blur(28px) saturate(180%);
       backdrop-filter: blur(28px) saturate(180%);
       box-shadow:
@@ -797,26 +797,26 @@
         inset 0 -1px 0 rgba(0,0,0,0.08);
       transition: background 160ms ease, transform 100ms ease;
     }
-    .back .direction:hover { background: rgba(255,255,255,0.10); }
+    .back .direction:hover { background: var(--card-back-control-hover, rgba(255,255,255,0.10)); }
     .back .direction:active { transform: scale(0.98); }
     .back .direction .dir-body { flex: 1; min-width: 0; }
     .back .direction .dir-title {
       font-size: 14px; font-weight: 500;
       letter-spacing: -0.01em;
-      color: rgba(255,255,255,0.94);
+      color: var(--card-back-text, rgba(255,255,255,0.94));
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .back .direction .dir-desc {
       font-size: 12px;
-      color: rgba(255,255,255,0.55);
+      color: var(--card-back-muted, rgba(255,255,255,0.55));
       margin-top: 2px;
       letter-spacing: -0.005em;
       line-height: 1.3;
     }
     .back .direction .dir-arrow {
-      color: rgba(255,255,255,0.45);
+      color: var(--card-back-muted, rgba(255,255,255,0.45));
       font-size: 18px;
       line-height: 1;
       flex-shrink: 0;
@@ -833,12 +833,12 @@
       display: inline-flex; align-items: center;
       gap: 6px;
       padding: 7px 12px;
-      background: rgba(255,255,255,0.06);
+      background: var(--card-back-control-bg, rgba(255,255,255,0.06));
       border: none;
       border-radius: 999px;
       font-size: 12px;
       font-weight: 500;
-      color: rgba(255,255,255,0.94);
+      color: var(--card-back-text, rgba(255,255,255,0.94));
       text-decoration: none;
       -webkit-backdrop-filter: blur(28px) saturate(180%);
       backdrop-filter: blur(28px) saturate(180%);
@@ -849,7 +849,7 @@
         inset 0 -1px 0 rgba(0,0,0,0.10);
       transition: background 160ms ease;
     }
-    .back .pill:hover { background: rgba(255,255,255,0.10); }
+    .back .pill:hover { background: var(--card-back-control-hover, rgba(255,255,255,0.10)); }
     .back .pill svg { width: 13px; height: 13px; }
 
     /* CTA */
@@ -858,8 +858,8 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      background: rgba(255,255,255,0.98);
-      color: #0a0a0e;
+      background: var(--card-back-cta-bg, rgba(255,255,255,0.98));
+      color: var(--card-back-cta-text, #0a0a0e);
       border-radius: 13px;
       padding: 13px 16px;
       text-decoration: none;
@@ -1611,12 +1611,35 @@
           text: '#573319',
           muted: '#8b5b34',
           overlay: 'linear-gradient(180deg, rgba(87,51,25,0) 0%, rgba(87,51,25,0) 58%, rgba(87,51,25,0.08) 100%)',
+          backBg: 'radial-gradient(circle at 50% -12%, #fffaf0 0%, #efd5af 58%, #ddb17e 100%)',
+          backText: '#573319',
+          backMuted: '#8b5b34',
+          backSubtle: '#6f4728',
+          backControlBg: 'rgba(87,51,25,0.08)',
+          backControlHover: 'rgba(87,51,25,0.14)',
+          backDot: 'rgba(87,51,25,0.28)',
+          backCtaBg: '#573319',
+          backCtaText: '#fff8ed',
         };
       }
       if (id === 'p_87fo6th') {
-        return { text: '#ffffff', muted: '#c8d7ff' };
+        return {
+          text: '#ffffff',
+          muted: '#c8d7ff',
+          backBg: 'radial-gradient(circle at 84% 0%, rgba(97,116,255,0.48) 0%, transparent 42%), linear-gradient(160deg, #153b9f 0%, #242166 58%, #25133f 100%)',
+          backText: '#ffffff',
+          backMuted: '#aebdff',
+          backSubtle: '#d6dcff',
+        };
       }
-      return { text: '#fffaff', muted: '#b9b0ca' };
+      return {
+        text: '#fffaff',
+        muted: '#b9b0ca',
+        backBg: 'radial-gradient(circle at 88% 0%, #34323f 0%, #17151f 34%, #0d0a15 100%)',
+        backText: '#fffaff',
+        backMuted: '#948aa7',
+        backSubtle: '#c2b9d2',
+      };
     }
 
     function createCard(project, projectIdx) {
@@ -1630,6 +1653,15 @@
       card.style.setProperty('--card-text', textPalette.text);
       card.style.setProperty('--card-muted', textPalette.muted);
       if (textPalette.overlay) card.style.setProperty('--card-overlay', textPalette.overlay);
+      if (textPalette.backBg) card.style.setProperty('--card-back-bg', textPalette.backBg);
+      if (textPalette.backText) card.style.setProperty('--card-back-text', textPalette.backText);
+      if (textPalette.backMuted) card.style.setProperty('--card-back-muted', textPalette.backMuted);
+      if (textPalette.backSubtle) card.style.setProperty('--card-back-subtle', textPalette.backSubtle);
+      if (textPalette.backControlBg) card.style.setProperty('--card-back-control-bg', textPalette.backControlBg);
+      if (textPalette.backControlHover) card.style.setProperty('--card-back-control-hover', textPalette.backControlHover);
+      if (textPalette.backDot) card.style.setProperty('--card-back-dot', textPalette.backDot);
+      if (textPalette.backCtaBg) card.style.setProperty('--card-back-cta-bg', textPalette.backCtaBg);
+      if (textPalette.backCtaText) card.style.setProperty('--card-back-cta-text', textPalette.backCtaText);
 
       const initials = (project.name || '?').slice(0, 1).toUpperCase();
       const logoInner = project.logo
