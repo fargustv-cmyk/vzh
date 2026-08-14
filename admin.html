@@ -589,7 +589,7 @@
       <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:14px;">
         <div>
           <h2 style="margin:0 0 4px;">Движение карточек</h2>
-          <p class="hint" style="margin:0;">Подъём и переворот по клику; курсор двигает только световой блик.</p>
+          <p class="hint" style="margin:0;">Подъём и непрозрачное открытие оборота по клику; курсор двигает только световой блик.</p>
         </div>
         <label style="display:flex; align-items:center; gap:8px; margin:0; white-space:nowrap;">
           <input id="motion-enabled" type="checkbox" style="width:auto;" /> Включено
@@ -598,14 +598,14 @@
       <div class="grid-2">
         <div id="motion-preview" style="grid-column:1 / -1; min-height:150px; display:grid; place-items:center; border:0.5px solid var(--border); border-radius:14px; background:radial-gradient(circle at 50% 20%,rgba(122,92,201,.18),transparent 52%),#0d0b13; overflow:hidden; perspective:900px;">
           <div id="motion-preview-card" style="width:min(280px,72%);height:108px;border-radius:16px;background:linear-gradient(155deg,#4935b7,#1c153d);box-shadow:0 24px 50px rgba(0,0,0,.45);display:flex;align-items:flex-end;padding:16px;color:#fff;transition:transform 120ms ease,box-shadow 180ms ease;transform-style:preserve-3d;position:relative;overflow:hidden;">
-            <span style="position:relative;z-index:2;font-size:13px;font-weight:600;">Курсор двигает только блик</span>
+            <span style="position:relative;z-index:2;font-size:13px;font-weight:600;">Подъём 2D · курсор двигает блик</span>
             <span id="motion-preview-glare" style="position:absolute;inset:0;background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.58),transparent 45%);opacity:.22;mix-blend-mode:soft-light;pointer-events:none;"></span>
           </div>
         </div>
         <div><label>Подъём из стопки · <span id="motion-extractLift-value"></span> px</label><input id="motion-extractLift" type="range" min="0" max="36" step="1" /></div>
         <div><label>Масштаб вынутой карты · <span id="motion-extractScale-value"></span></label><input id="motion-extractScale" type="range" min="1" max="1.06" step="0.001" /></div>
         <div><label>Сила блика · <span id="motion-glare-value"></span></label><input id="motion-glare" type="range" min="0" max="0.5" step="0.01" /></div>
-        <div><label>Скорость переворота · <span id="motion-flipDuration-value"></span> мс</label><input id="motion-flipDuration" type="range" min="240" max="1400" step="20" /></div>
+        <div><label>Скорость открытия оборота · <span id="motion-flipDuration-value"></span> мс</label><input id="motion-flipDuration" type="range" min="240" max="1400" step="20" /></div>
         <div><label>Инерция подъёма · <span id="motion-springDuration-value"></span> мс</label><input id="motion-springDuration" type="range" min="240" max="1400" step="20" /></div>
       </div>
     </section>

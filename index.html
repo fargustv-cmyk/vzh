@@ -362,9 +362,9 @@
       border-radius: inherit;
       transform-origin: 52% 50%;
     }
-    /* Mirror flip — card rotates in the opposite direction so it feels like
-       the right edge swings forward instead of the left. */
-    .card.is-flipped .card-inner { transform: rotateY(-180deg); }
+    /* Project cards use a flat reveal instead of a 3D flip. The front remains
+       an opaque underlay for the entire transition, so another card can never
+       bleed through while the back is opening. */
 
     .face {
       position: absolute;
@@ -394,7 +394,7 @@
        card-inner на -180° front покажется зеркально. */
     .face.front { transform: rotateY(0deg) translateZ(0); }
     .card .face.front {
-      transform: rotateY(0deg) translateZ(.5px);
+      transform: none;
       background: var(--card-bg, linear-gradient(165deg, #555, #222));
       background-size: cover;
       background-position: center;
@@ -513,6 +513,40 @@
         linear-gradient(160deg, #211e2b 0%, #0d0a15 72%, #08060e 100%));
       color: var(--card-back-text, var(--text));
       padding: 18px 18px 16px;
+    }
+
+    @keyframes project-card-back-reveal {
+      from {
+        clip-path: inset(0 0 100% 0 round 22px);
+        transform: translateY(-6px);
+      }
+      to {
+        clip-path: inset(0 round 22px);
+        transform: translateY(0);
+      }
+    }
+    .card .card-inner {
+      transform: none;
+      transform-style: flat;
+      transition: none;
+    }
+    .card .face.front {
+      z-index: 1;
+      visibility: visible;
+    }
+    .card .face.back {
+      z-index: 2;
+      transform: none;
+      visibility: hidden;
+      pointer-events: none;
+      clip-path: inset(0 0 100% 0 round 22px);
+    }
+    .card.is-flipped .face.back {
+      visibility: visible;
+      pointer-events: auto;
+      clip-path: inset(0 round 22px);
+      animation: project-card-back-reveal var(--motion-flip-ms, 760ms) cubic-bezier(.22,.8,.22,1) both;
+      will-change: clip-path, transform;
     }
 
     /* Top row — same anchor in every state */
