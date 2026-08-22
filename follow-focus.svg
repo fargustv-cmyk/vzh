@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title description">
+  <title id="title">Follow Focus</title>
+  <desc id="description">Three overlapping colored circles</desc>
+  <defs>
+    <clipPath id="left-circle">
+      <circle cx="45" cy="80" r="28" />
+    </clipPath>
+    <clipPath id="middle-circle">
+      <circle cx="80" cy="80" r="28" />
+    </clipPath>
+  </defs>
+  <circle cx="45" cy="80" r="28" fill="#f5b84b" />
+  <circle cx="80" cy="80" r="28" fill="#2dd4bf" />
+  <circle cx="115" cy="80" r="28" fill="#8b7cf6" />
+  <circle cx="80" cy="80" r="28" fill="#34c88a" clip-path="url(#left-circle)" />
+  <circle cx="115" cy="80" r="28" fill="#60a5fa" clip-path="url(#middle-circle)" />
+</svg>

@@ -19,7 +19,7 @@
       },
       {
         "title": "Что делаю",
-        "body": "Шесть проектов под зонтом Vozhakin Group — от бренда одежды до планировщика для команд. Каждый — про опыт, не про категорию."
+        "body": "Проекты под зонтом Vozhakin Group — от бренда одежды до цифровых продуктов и инструментов для команд. Каждый — про опыт, не про категорию."
       },
       {
         "title": "Связаться",
@@ -224,6 +224,60 @@
       "cta": {
         "label": "Перейти в приложение",
         "url": "https://t.me/personal_converter_bot"
+      },
+      "hidden": false
+    },
+    {
+      "id": "follow-focus",
+      "name": "Follow Focus",
+      "type": "Telegram mini app",
+      "variant": "",
+      "group": "",
+      "description": "Задачи и привычки — по сферам жизни",
+      "logo": "/follow-focus.svg",
+      "url": "https://t.me/followfocus_bot",
+      "accent": "#2dd4bf",
+      "background": "radial-gradient(circle at 12% 0%, rgba(45, 212, 191, 0.68) 0%, transparent 38%), radial-gradient(circle at 92% 8%, rgba(139, 124, 246, 0.58) 0%, transparent 42%), linear-gradient(150deg, #0b1720 0%, #111827 58%, #211934 100%)",
+      "palette": {
+        "frontText": "#f7fbff",
+        "frontMuted": "#b7c8d6",
+        "backBackground": "radial-gradient(circle at 10% 0%, rgba(45, 212, 191, 0.24) 0%, transparent 36%), radial-gradient(circle at 92% 5%, rgba(139, 124, 246, 0.28) 0%, transparent 40%), linear-gradient(155deg, #0d1821 0%, #111827 55%, #1c1730 100%)",
+        "backText": "#f7fbff",
+        "backMuted": "#a8bac8",
+        "backSubtle": "#c8d8e4",
+        "backCtaBackground": "#f7fbff",
+        "backCtaText": "#0c1720"
+      },
+      "sections": [
+        {
+          "title": "О проекте",
+          "body": "Персональный чек-лист, где задачи и привычки живут в отдельных сферах: здоровье, работа, дом, спорт и других. На экране «Сегодня» остаётся только то, что находится в текущем фокусе."
+        },
+        {
+          "title": "Идея",
+          "body": "Не смешивать пробежку, уборку и рабочую задачу в одном бесконечном списке. Сферы работают как тетради, а режимы фокуса позволяют собирать из них разные сценарии дня, не теряя содержимое."
+        },
+        {
+          "title": "Возможности",
+          "body": "Задачи и привычки с подпунктами и временем, режимы фокуса, готовая библиотека планов, марафоны, напоминания, статистика и два оформления — жидкое неоновое стекло и электронные чернила."
+        }
+      ],
+      "links": [
+        {
+          "label": "Telegram",
+          "url": "https://t.me/followfocus_bot",
+          "icon": "telegram"
+        },
+        {
+          "label": "Web",
+          "url": "https://three-spheres.fargustv.chatgpt.site/",
+          "icon": "link"
+        }
+      ],
+      "directions": [],
+      "cta": {
+        "label": "Открыть приложение",
+        "url": "https://t.me/followfocus_bot"
       },
       "hidden": false
     }
